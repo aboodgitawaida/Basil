@@ -3,15 +3,25 @@ import {
 } from '../lib/room'
 import { spriteSize } from '../lib/sprites'
 import { Sprite } from './Sprite'
-import { Fridge } from './Fridge'
-import { Pantry } from './Pantry'
+import { Fridge, FRIDGE_FRAMES } from './Fridge'
+import { Pantry, PANTRY_FRAMES } from './Pantry'
 import { Window } from './Window'
+import { Shelves } from './Shelves'
+import { useSteps } from '../lib/useSteps'
+import type { Item } from '../lib/schema'
 
 type Props = {
   fridgeOpen: boolean
   cupboardOpen: boolean
   onFridge: () => void
   onCupboard: () => void
+  items: Item[]
+  itemHandlers: {
+    onPointerDown: (item: Item, e: React.PointerEvent) => void
+    onPointerMove: (e: React.PointerEvent) => void
+    onPointerUp: (e: React.PointerEvent) => void
+  }
+  draggingId?: string
 }
 
 /** Contact shadow. The light is up and to the left, so shadows fall right. */
@@ -24,8 +34,12 @@ function Shadow({ x, w, y, soft = false }: { x: number; w: number; y: number; so
   )
 }
 
-export function Room({ fridgeOpen, cupboardOpen, onFridge, onCupboard }: Props) {
+export function Room({
+  fridgeOpen, cupboardOpen, onFridge, onCupboard, items, itemHandlers, draggingId,
+}: Props) {
   const cat = spriteSize('cat/sleep-0')
+  const fridgeFrame = useSteps(fridgeOpen, FRIDGE_FRAMES, 55)
+  const pantryFrame = useSteps(cupboardOpen, PANTRY_FRAMES, 50)
 
   return (
     <div className="room" style={{ width: ROOM.w, height: ROOM.h }}>
@@ -46,7 +60,9 @@ export function Room({ fridgeOpen, cupboardOpen, onFridge, onCupboard }: Props) 
       <Sprite k="room/clock" x={CLOCK.x} y={CLOCK.y} />
 
       {/* counter run — the pantry on the left, drawers on the right, one worktop */}
-      <Pantry open={cupboardOpen} onToggle={onCupboard} />
+      <Pantry frame={pantryFrame} open={cupboardOpen} onToggle={onCupboard}>
+        <Shelves where="cupboard" frame={pantryFrame} items={items} draggingId={draggingId} {...itemHandlers} />
+      </Pantry>
       <Sprite k="room/counter-drawers" x={COUNTER.x + COUNTER.w} bottom={FLOOR_Y} />
       <i
         className="room__worktop"
@@ -64,7 +80,9 @@ export function Room({ fridgeOpen, cupboardOpen, onFridge, onCupboard }: Props) 
       ))}
 
       <Shadow x={FRIDGE.right - FRIDGE.w} w={FRIDGE.w} y={FLOOR_Y} />
-      <Fridge open={fridgeOpen} onToggle={onFridge} />
+      <Fridge frame={fridgeFrame} open={fridgeOpen} onToggle={onFridge}>
+        <Shelves where="fridge" frame={fridgeFrame} items={items} draggingId={draggingId} {...itemHandlers} />
+      </Fridge>
     </div>
   )
 }

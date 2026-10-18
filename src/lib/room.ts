@@ -25,6 +25,23 @@ export const CLOCK = { x: 146, y: 10 } as const
  *  curled tail, which drapes over the front rather than resting on it. */
 export const CAT = { x: 4, overhang: 10 } as const
 
+/** Where things sit inside the fridge and the pantry, measured off the
+ *  sprites. Shelf values are the surface an item stands on. */
+export const FRIDGE_BAYS = {
+  x: 120, w: 58, slots: 3,
+  /** top bay doubles as the freezer; the pack's freezer door never opens */
+  shelves: [124, 144, 166, 193],
+  /** how much of the interior each door frame has revealed, as a left edge */
+  revealed: [Infinity, Infinity, 150, 118, 118],
+} as const
+
+export const PANTRY_BAYS = {
+  x: 10, w: 36, slots: 3,
+  shelves: [150, 172, 196],
+  /** the door narrows towards its hinge, so the interior clears from the right */
+  revealed: [Infinity, 42, 28, 18],
+} as const
+
 /** Surface clutter, kept to one group with space around it.
  *  [sprite, x] in centimetres; everything stands on the worktop. */
 export const PROPS: Array<[string, number]> = [

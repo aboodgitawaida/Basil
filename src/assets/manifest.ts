@@ -68,6 +68,9 @@ const NOISE = new Set([
   'whole', 'semi', 'skimmed', 'fresh', 'frozen', 'dried', 'tinned', 'canned',
   'organic', 'free', 'range', 'mature', 'extra', 'large', 'small', 'big',
   'little', 'red', 'green', 'white', 'brown', 'plain', 'light', 'low', 'fat',
+  // counts belong in `count`, not in the name
+  'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine',
+  'ten', 'dozen', 'couple', 'few', 'loaf', 'loaves', 'bunch', 'head',
 ])
 
 const singular = (w: string): string =>
@@ -80,6 +83,7 @@ const singular = (w: string): string =>
 export function normalise(input: string): string {
   const words = input
     .toLowerCase()
+    .replace(/[0-9]+/g, ' ')
     .replace(/[^a-z\s-]/g, ' ')
     .split(/[\s-]+/)
     .filter(Boolean)
