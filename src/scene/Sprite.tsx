@@ -9,6 +9,8 @@ type Props = {
   flip?: boolean
   /** Quarter turn. Only right angles — any other angle would resample. */
   rotate?: boolean
+  /** Pin the sprite's right edge to this x instead of its left to `x`. */
+  rightAlign?: number
   className?: string
   style?: React.CSSProperties
 }
@@ -16,11 +18,12 @@ type Props = {
 /** One sprite, placed in art pixels. Never scaled here — the whole room is
  *  scaled by one whole number higher up, which is what keeps every pack at the
  *  same apparent pixel size. */
-export function Sprite({ k, x, y, bottom, flip, rotate, className, style }: Props) {
+export function Sprite({ k, x, y, bottom, flip, rotate, rightAlign, className, style }: Props) {
   const url = spriteUrl(k)
   if (!url) return null
   const { w, h } = spriteSize(k)
   const top = bottom !== undefined ? bottom - h : (y ?? 0)
+  const left = rightAlign !== undefined ? rightAlign - w : x
   return (
     <img
       src={url}
@@ -29,7 +32,7 @@ export function Sprite({ k, x, y, bottom, flip, rotate, className, style }: Prop
       className={className}
       style={{
         position: 'absolute',
-        left: x,
+        left,
         top,
         width: w,
         height: h,
