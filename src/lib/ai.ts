@@ -26,6 +26,20 @@ const REASONS: Record<string, string> = {
   'bad-json': 'The model sent something unreadable, so the simple parser had a go.',
 }
 
+/** Turns a failed AI result into a sentence that says what to fix. The server
+ *  puts the provider's HTTP status in `detail`, e.g. "gemini 404: ...". */
+export function failureMessage(reason?: string, detail?: string): string {
+  if (reason === 'no-key') return 'No API key set. Add GEMINI_API_KEY to .env and restart.'
+  if (reason === 'bad-json') return 'The model sent something unreadable.'
+  const d = detail ?? ''
+  if (/\b404\b/.test(d)) return 'The model name was not found. It may have been retired: set BASIL_MODEL in .env.'
+  if (/\b(401|403)\b/.test(d) || /API key/i.test(d)) return 'The API key was rejected. Check GEMINI_API_KEY in .env.'
+  if (/\b429\b/.test(d)) return 'Rate limited by the model. Wait a minute and try again.'
+  if (/\b5\d\d\b/.test(d)) return 'The model service is having trouble. Try again shortly.'
+  if (/abort/i.test(d)) return 'The model took too long to answer.'
+  return 'Could not reach the model.'
+}
+
 /**
  * Asks the model, and falls back to the keyword matcher on absolutely anything
  * going wrong. The AI is never allowed to be a blocker: a missing key, a dead
@@ -51,7 +65,7 @@ export async function parseText(text: string): Promise<ParseOutcome> {
   } catch {
     return fallback(REASONS['bad-json'])
   }
-  if (!body?.ok) return fallback(REASONS[body?.reason] ?? REASONS.unreachable)
+  if (!body?.ok) return fallback(`${failureMessage(body?.reason, body?.detail)} Using the simple parser.`)
 
   const drafts: Draft[] = body.data.items.map((i: any) => ({
     displayName: i.displayName,
@@ -72,9 +86,11 @@ export async function parseText(text: string): Promise<ParseOutcome> {
  *  doesn't re-ask the same question and burn tokens. */
 const memo = new Map<string, unknown>()
 
-async function cached<T>(key: string, fn: () => Promise<T>): Promise<T> {
+async function cached<T extends { source: string }>(key: string, fn: () => Promise<T>): Promise<T> {
   if (memo.has(key)) return memo.get(key) as T
   const value = await fn()
+  // a fallback answer is not worth remembering: fix the key and the next ask should work
+  if (value.source !== 'model') return value
   memo.set(key, value)
   if (memo.size > 40) memo.delete(memo.keys().next().value as string)
   return value
@@ -89,7 +105,7 @@ export type Meal = {
   usesSoon: string[]
 }
 
-export type SuggestOutcome = { meals: Meal[]; line?: string; source: 'model' | 'local' }
+export type SuggestOutcome = { meals: Meal[]; line?: string; source: 'model' | 'local'; why?: string }
 
 export function inventoryKey(items: Item[]): string {
   return items.map(i => `${i.name}:${i.amount}:${i.count ?? ''}`).sort().join('|')
@@ -101,6 +117,7 @@ export async function suggestMeals(items: Item[], dietary: string[]): Promise<Su
     const inventory = items
       .map(i => `- ${i.displayName} (${i.name}, ${i.amount}${i.count ? `, ${i.count}` : ''})`)
       .join('\n')
+    let why: string | undefined
     try {
       const res = await fetch('/api/suggest', {
         method: 'POST',
@@ -109,16 +126,18 @@ export async function suggestMeals(items: Item[], dietary: string[]): Promise<Su
       })
       const body = await res.json()
       if (body?.ok) return { ...body.data, source: 'model' as const }
-    } catch { /* falls through */ }
-    return { meals: localSuggest(items), source: 'local' as const }
+      why = failureMessage(body?.reason, body?.detail)
+    } catch { why = failureMessage('unreachable') }
+    return { meals: localSuggest(items), source: 'local' as const, why }
   })
 }
 
 export type Verdict = { name: string; ok: boolean; steps: string[]; minutes: number; line?: string }
 
-export async function judgeCraft(items: Item[]): Promise<{ verdict: Verdict; source: 'model' | 'local' }> {
+export async function judgeCraft(items: Item[]): Promise<{ verdict: Verdict; source: 'model' | 'local'; why?: string }> {
   const key = `craft:${items.map(i => i.name).sort().join('+')}`
   return cached(key, async () => {
+    let why: string | undefined
     try {
       const res = await fetch('/api/craft', {
         method: 'POST',
@@ -127,8 +146,9 @@ export async function judgeCraft(items: Item[]): Promise<{ verdict: Verdict; sou
       })
       const body = await res.json()
       if (body?.ok) return { verdict: body.data as Verdict, source: 'model' as const }
-    } catch { /* falls through */ }
-    return { verdict: localCraft(items), source: 'local' as const }
+      why = failureMessage(body?.reason, body?.detail)
+    } catch { why = failureMessage('unreachable') }
+    return { verdict: localCraft(items), source: 'local' as const, why }
   })
 }
 

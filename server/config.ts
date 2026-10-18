@@ -28,8 +28,9 @@ export const PROVIDERS: Record<ProviderName, ProviderConfig> = {
     keyEnv: 'GEMINI_API_KEY',
     baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
     urlEnv: 'BASIL_GEMINI_URL',
-    // Override with BASIL_MODEL if this name moves on.
-    model: 'gemini-2.0-flash',
+    // gemini-2.0-flash has been retired. The -latest alias follows Google's
+    // current Flash model; pin an exact name with BASIL_MODEL if you need to.
+    model: 'gemini-flash-latest',
     maxOutputTokens: 2048,
     timeoutMs: 20_000,
   },

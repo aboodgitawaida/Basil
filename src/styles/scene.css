@@ -217,6 +217,7 @@
 .sheet__icon { display: block; overflow: hidden; }
 .sheet__icon img { display: block; image-rendering: pixelated; transform: scale(2); transform-origin: top left; }
 .sheet__dim { color: var(--text-dim); margin: 4px 0; }
+.sheet__warn { color: var(--text); margin: 4px 0; }
 .sheet__row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
 .sheet__row--end { justify-content: space-between; margin-bottom: 0; }
 

@@ -6,6 +6,8 @@ import type { Item } from '../lib/schema'
 type Props = {
   used: Item[]
   verdict: Verdict | null
+  /** set when the model failed and this is the built-in guess */
+  why?: string
   thinking: boolean
   onCook: () => void
   onClear: () => void
@@ -13,7 +15,7 @@ type Props = {
 
 /** The output slot. It previews as the board fills, and only offers to cook
  *  when the result is something worth eating. */
-export function CraftPanel({ used, verdict, thinking, onCook, onClear }: Props) {
+export function CraftPanel({ used, verdict, why, thinking, onCook, onClear }: Props) {
   if (!used.length) {
     return <p className="craftpanel__idle u-small">Drag something onto the board.</p>
   }
@@ -31,6 +33,7 @@ export function CraftPanel({ used, verdict, thinking, onCook, onClear }: Props) 
         <p>{thinking ? 'Basil is thinking…' : verdict?.name ?? '…'}</p>
         <p className="u-small craftpanel__dim">
           {thinking ? ' '
+            : why ? `${why} Built-in guess.`
             : verdict?.line ?? (verdict?.ok
               ? `${verdict.minutes} min · ${used.length} ingredient${used.length > 1 ? 's' : ''}`
               : 'Not really a meal.')}
