@@ -33,6 +33,8 @@ export function App() {
   const [hint, setHint] = useState<string | undefined>(undefined)
   const [board, setBoard] = useState<Board>(emptyBoard)
   const [verdict, setVerdict] = useState<Verdict | null>(null)
+  const [craftWhy, setCraftWhy] = useState<string | undefined>()
+  const [suggestWhy, setSuggestWhy] = useState<string | undefined>()
   const [thinking, setThinking] = useState(false)
   const [bookOpen, setBookOpen] = useState(false)
   const [suggestions, setSuggestions] = useState<Meal[]>([])
@@ -116,8 +118,8 @@ export function App() {
     let cancelled = false
     setThinking(true)
     const t = window.setTimeout(() => {
-      void judgeCraft(used).then(({ verdict }) => {
-        if (!cancelled) { setVerdict(verdict); setThinking(false) }
+      void judgeCraft(used).then(({ verdict, why }) => {
+        if (!cancelled) { setVerdict(verdict); setCraftWhy(why); setThinking(false) }
       })
     }, 500)
     return () => { cancelled = true; window.clearTimeout(t); window.clearTimeout(t) }
@@ -140,6 +142,7 @@ export function App() {
     void suggestMeals(state.items, state.settings.dietary).then(r => {
       setSuggestions(r.meals)
       setSuggestLine(r.line)
+      setSuggestWhy(r.why)
       setSuggesting(false)
       setSay('idea')
       window.setTimeout(() => setSay(null), 3200)
@@ -208,6 +211,7 @@ export function App() {
           <CraftPanel
             used={used}
             verdict={verdict}
+            why={craftWhy}
             thinking={thinking}
             onCook={doCook}
             onClear={() => setBoard(emptyBoard())}
@@ -256,6 +260,7 @@ export function App() {
           entries={book(state)}
           suggestions={suggestions}
           line={suggestLine}
+          why={suggestWhy}
           loading={suggesting}
           onClose={() => setBookOpen(false)}
         />

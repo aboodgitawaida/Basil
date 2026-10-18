@@ -6,6 +6,8 @@ type Props = {
   entries: BookEntry[]
   suggestions: Meal[]
   line?: string
+  /** set when the model failed and these are the built-in recipes */
+  why?: string
   loading: boolean
   onClose: () => void
 }
@@ -23,7 +25,7 @@ function Dish({ name }: { name: string }) {
 /** Everything cooked before, plus what the kitchen reckons you could make now.
  *  Meals you are short of are greyed with the missing bits listed — that is
  *  the bit that makes you want to go and buy them. */
-export function RecipeBook({ entries, suggestions, line, loading, onClose }: Props) {
+export function RecipeBook({ entries, suggestions, line, why, loading, onClose }: Props) {
   return (
     <div className="sheet" onClick={onClose}>
       <div className="sheet__panel sheet__panel--tall" onClick={e => e.stopPropagation()}>
@@ -33,6 +35,7 @@ export function RecipeBook({ entries, suggestions, line, loading, onClose }: Pro
         </div>
 
         <p className="u-small sheet__dim">{loading ? 'Having a think…' : line ?? 'What you could make.'}</p>
+        {why && !loading && <p className="u-small sheet__warn">{why} Showing built-in recipes.</p>}
         <ul className="book">
           {suggestions.map(m => (
             <li key={`s-${m.name}`} className={`book__row${m.missing.length ? ' book__row--short' : ''}`}>
