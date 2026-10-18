@@ -39,7 +39,8 @@ export const PROVIDERS: Record<ProviderName, ProviderConfig> = {
     keyEnv: 'GROQ_API_KEY',
     baseUrl: 'https://api.groq.com/openai/v1',
     urlEnv: 'BASIL_GROQ_URL',
-    model: 'llama-3.3-70b-versatile',
+    // llama-3.3-70b-versatile was retired on Groq in Aug 2026; this is Groq's named replacement.
+    model: 'openai/gpt-oss-120b',
     maxOutputTokens: 2048,
     timeoutMs: 20_000,
   },
