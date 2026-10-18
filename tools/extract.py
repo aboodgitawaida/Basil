@@ -16,7 +16,7 @@ Two things happen here that matter more than the cropping:
 2. ONE HAND. Every sprite is remapped onto the palette in tools/palette.py and
    given the same outline treatment, so six artists' work reads as one.
 """
-import json, os, shutil, sys
+import glob, json, os, shutil, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from PIL import Image, ImageDraw
 from palette import nearest, rgba, css_vars
@@ -29,6 +29,14 @@ SHEETS = os.path.join(A, "sprites/restaurant/spritesheets")
 ITEMPACK = os.path.join(A, "sprites/items/item-pack/No_Outline")
 WEATHER = os.path.join(A, "sprites/unknown-single-spritesheet.png")
 CAT = os.path.join(A, "sprites/sleeping-cat-free")
+FOOD2 = os.path.join(A, "Pixel Art - Food Pack 2")
+ICONS = os.path.join(A, "Pixel Art - Food Icons - FREE Version/Transparent PNG Files")
+FRIDGE_PACK = os.path.join(A, "Pixel Art Fridge Pack/Fridges - Green/Fridge 5 - Empty_sprites")
+
+# World centimetres per source pixel for the packs that are drawn at roughly
+# half the world scale. Everything is emitted already upscaled, so the scene
+# code only ever deals in centimetres.
+UNIT = 2
 
 index = {}
 INK = rgba("ink")
@@ -107,10 +115,26 @@ def outline(img):
     return out
 
 
-def save(img, name, trim=True, process=True):
+def up(img, n=UNIT):
+    return img.resize((img.width * n, img.height * n), Image.NEAREST)
+
+
+def chunk(img):
+    """Halve, then double. Leaves the sprite the same size on the world ruler
+    but on the same 2px grid as the packs, so one object isn't twice as finely
+    drawn as the thing it sits on."""
+    small = img.resize((max(1, img.width // 2), max(1, img.height // 2)), Image.BOX)
+    return small
+
+
+def save(img, name, trim=True, process=True, scale=1, chunky=False):
+    if chunky:
+        img = chunk(img)
     if process:
         img = quantize(img)
         img = outline(img)
+    if scale > 1:
+        img = up(img, scale)
     if trim:
         b = img.getbbox()
         if b:
@@ -121,11 +145,11 @@ def save(img, name, trim=True, process=True):
     index[name] = {"w": img.width, "h": img.height}
 
 
-def frames(src, names, size=32):
+def frames(src, names, size=32, **kw):
     im = Image.open(src).convert("RGBA")
     for i, n in enumerate(names):
         if n:
-            save(im.crop((i * size, 0, (i + 1) * size, im.height)), n)
+            save(im.crop((i * size, 0, (i + 1) * size, im.height)), n, **kw)
 
 
 if os.path.isdir(OUT):
@@ -134,43 +158,92 @@ os.makedirs(OUT, exist_ok=True)
 
 # --------------------------------------------------- architecture (drawn) ---
 for name, fn in F.AUTHORED.items():
-    save(fn(), name, trim=False, process=False)
-for i, dw in enumerate(F.DOOR_WIDTHS):
-    save(F.fridge_door(dw, F.FREEZER_H, True), f"fridge/freezer-{i}", trim=False, process=False)
-    save(F.fridge_door(dw, F.FRIDGE_H - F.FREEZER_H, False), f"fridge/door-{i}", trim=False, process=False)
-for i, sw in enumerate(F.CUP_SWING):
-    half = F.CUP_W // 2
-    save(F.cupboard_door(half - sw, "l"), f"room/cup-l-{i}", trim=False, process=False)
-    save(F.cupboard_door(half - sw, "r"), f"room/cup-r-{i}", trim=False, process=False)
+    save(fn(), name, trim=False, process=False, scale=UNIT)
+for i, sw in enumerate(F.PANTRY_SWING):
+    save(F.pantry_door(F.COUNTER_W // F.H - 4 - sw), f"room/pantry-door-{i}",
+         trim=False, process=False, scale=UNIT)
 for kind in ("floor", "skirting"):
-    save(F.tile(kind), f"room/{kind}", trim=False, process=False)
+    save(F.tile(kind), f"room/{kind}", trim=False, process=False, scale=UNIT)
+
+# --- fridge: the pack's own five-frame door swing, mirrored so the door opens
+# into the room rather than off the right edge of the scene.
+#
+# The pack draws the interior as a mid teal, darker than our wall. An open
+# fridge should be the brightest thing on screen, so the interior teals are
+# lifted towards a warm white before they are quantised.
+INTERIOR_TEALS = {
+    (0x4d, 0x7c, 0x8a), (0x68, 0x9a, 0xa6), (0x69, 0x97, 0xa2),
+    (0x94, 0xc4, 0xcc), (0x98, 0xbd, 0xbf), (0xad, 0xd9, 0xdb), (0xad, 0xd8, 0xda),
+}
+
+def light_interior(img, amount=0.32, towards=(255, 248, 224)):
+    px = img.load()
+    for y in range(img.height):
+        for x in range(img.width):
+            r, g, b, a = px[x, y]
+            if a >= 128 and (r, g, b) in INTERIOR_TEALS:
+                px[x, y] = (
+                    int(r + (towards[0] - r) * amount),
+                    int(g + (towards[1] - g) * amount),
+                    int(b + (towards[2] - b) * amount),
+                    255,
+                )
+    return img
+
+for i, f in enumerate(sorted(glob.glob(f"{FRIDGE_PACK}/*.png"))):
+    im = Image.open(f).convert("RGBA").transpose(Image.FLIP_LEFT_RIGHT)
+    im = light_interior(im)
+    b = im.getbbox()
+    save(im.crop((b[0], 0, b[2], im.height)), f"fridge/door-{i}", trim=False, scale=UNIT)
 
 # ------------------------------------------------- objects, at world scale ---
 # These are all ~1 px per cm in their source art, so they go in untouched.
-frames(f"{SHEETS}/Fruit.png",
-       ["food/grapes", "food/orange", "food/apple", "food/lime", "food/lemon",
-        "food/pear", "food/cherry", "food/banana"])
-frames(f"{SHEETS}/Vegetables.png",
-       ["food/corn", "food/garlic", "food/pumpkin", "food/carrot", "food/radish",
-        "food/pepper", "food/mushroom", "food/chilli", "food/aubergine", "food/pea"])
-frames(f"{SHEETS}/Meat.png",
-       ["food/roast-chicken", "food/chicken", "food/bacon", "food/steak", "food/ham"])
-frames(f"{SHEETS}/Silverware.png",
-       ["kit/fork", "kit/spoon", "kit/knife", "kit/bowl", "kit/plate-stack",
-        "kit/plate-small", "kit/plate", "kit/plate-large", "food/egg"])
-frames(f"{SHEETS}/ChefTools.png",
-       ["kit/masher", None, "kit/chef-knife", None, "kit/pan",
-        "kit/pot", "kit/mixing-bowl", "kit/ladle", "kit/rolling-pin", "kit/spatula"])
+# Food Pack 2 is real groceries at ~0.5 px/cm, so it goes in at x2. It
+# replaces the restaurant pack's fruit, which is drawn as collectible icons and
+# runs about six times oversized inside its own pack.
+FOOD2_MAP = {
+    "Carton of Milk": "food/milk", "Milk Bottle": "food/milk-bottle",
+    "Blue Tetrapack": "food/tetrapak", "Orange  Tetrapack 2": "food/juice-carton",
+    "Cheese": "food/cheese", "Cheese Wedge": "food/cheese-wedge",
+    "Ketchup": "food/ketchup", "Mustard": "food/mustard", "Hot Sauce": "food/hot-sauce",
+    "Olive Oil": "food/oil", "Green Wine Bottle": "food/wine",
+    "Orange Juice Bottle": "food/juice", "Water Bottle": "food/water",
+    "Soda Can 1": "food/can-1", "Soda Can 2": "food/can-2", "Soda Can 3": "food/can-3",
+    "Soda Can 4": "food/can-4", "Red Apple": "food/apple", "Green Apple": "food/apple-green",
+    "Pear": "food/pear", "Broccoli": "food/broccoli", "Pumpkin": "food/pumpkin",
+    "Watermelon": "food/watermelon", "Meat Cut": "food/steak",
+    "Chicken Drumstick": "food/drumstick", "Turkey Leg": "food/turkey-leg",
+    "Paper Bag": "food/paper-bag",
+}
+for src, name in FOOD2_MAP.items():
+    p = f"{FOOD2}/{src}.png"
+    if os.path.exists(p):
+        save(Image.open(p).convert("RGBA"), name, scale=UNIT)
 
-for n, name in [(3, "generic/bottle"), (2, "generic/jar"), (8, "generic/cheese"),
-                (16, "generic/bag"), (13, "generic/meat"), (5, "generic/produce"),
-                (9, "generic/fungus"), (10, "generic/herb")]:
-    save(Image.open(f"{ITEMPACK}/Item{n}.png").convert("RGBA"), name)
+# Kept from the restaurant pack: cookware, which is correctly sized at 1x.
+# Chunked so it sits on the same 2px grid as everything else.
+frames(f"{SHEETS}/Silverware.png",
+       ["kit/fork", None, None, "kit/bowl", "kit/plate-stack",
+        None, "kit/plate", None, "food/egg"], chunky=True, scale=UNIT)
+frames(f"{SHEETS}/ChefTools.png",
+       [None, None, None, None, "kit/pan",
+        "kit/pot", "kit/mixing-bowl", None, None, None], chunky=True, scale=UNIT)
+
+for n, name in [(2, "generic/jar"), (16, "generic/bag")]:
+    save(Image.open(f"{ITEMPACK}/Item{n}.png").convert("RGBA"), name,
+         chunky=True, scale=UNIT)
+
+# Cooked dishes, for the recipe book in phase 4. UI icons, not world objects,
+# so they are left at their own scale.
+for cat_dir in sorted(glob.glob(f"{ICONS}/*")):
+    for f in sorted(glob.glob(f"{cat_dir}/*.png")):
+        save(Image.open(f).convert("RGBA"), f"dish/{os.path.basename(f)[:-4]}")
 
 # Basil, asleep. Placeholder for phase 5 — one frame of the idle loop.
 cat = Image.open(f"{CAT}/sleepingcat1.png").convert("RGBA")
 for i in range(6):
-    save(cat.crop((i * 64, 0, (i + 1) * 64, 64)), f"cat/sleep-{i}")
+    save(cat.crop((i * 64, 0, (i + 1) * 64, 64)), f"cat/sleep-{i}",
+         chunky=True, scale=UNIT)
 
 # --------------------------------------------- authored containers + sky ---
 def carton(d):
@@ -196,12 +269,10 @@ def can(d):
     d.rectangle([2, 5, 3, 11], fill=rgba("terracotta"))
     d.rectangle([1, 0, 9, 2], fill=shine)
 
-for name, w, h, fn in (("generic/carton", 14, 22, carton),
-                       ("generic/box", 17, 16, boxy),
-                       ("generic/can", 11, 16, can)):
+for name, w, h, fn in (("generic/box", 17, 16, boxy),):
     img, d = F.new(w, h)
     fn(d)
-    save(img, name)
+    save(img, name, chunky=True, scale=UNIT)
 
 frames(f"{SHEETS}/Clouds.png",
        ["sky/cloud-1", "sky/cloud-2", None, None, "sky/cloud-3", None, None, "sky/cloud-4"])

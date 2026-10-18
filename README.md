@@ -65,20 +65,27 @@ These are enforced, not aspirational:
 Measured against a 90cm counter and a 170cm person, the packs fall into two
 groups about four times apart:
 
-| Source | px per cm | measured from |
-|---|---|---|
-| Modern Interiors | 0.23 | counter 21px = 90cm |
-| Restaurant pack, furniture | 0.27 | chair 24px, chef 47px |
-| Item Pack | ~1.0 | jar 15px = 15cm |
-| Sleeping cat | 0.96 | 43px = 45cm |
-| Restaurant pack, **food** | ~1.5 | apple 12px — 6× oversized *in its own pack* |
+| Source | px per cm | measured from | used |
+|---|---|---|---|
+| Pixel Art Fridge Pack | ~0.5 | fridge 83px = 166cm | **yes, ×2** |
+| Food Pack 2 | ~0.5–0.6 | milk carton 14px = 28cm | **yes, ×2** |
+| Sleeping cat | 0.96 | 43px = 45cm | yes, halved then ×2 |
+| Restaurant pack, cookware | ~1.0 | pot 19px = 20cm | yes, halved then ×2 |
+| Item Pack | ~1.0 | jar 15px = 15cm | yes, halved then ×2 |
+| Modern Interiors | 0.23 | counter 21px = 90cm | no |
+| Restaurant pack, **food** | ~1.5 | apple 12px — 6× oversized *in its own pack* | no |
+| Gritty Kitchen | — | — | no — wrong mood |
 
-Rendering both groups at 1× is why an apple used to be the size of a stool.
-Upscaling the room art 4× instead would put 4×4 blocks next to 1×1 detail, so
-the architecture is **drawn** in `tools/furniture.py` at 1px = 1cm and the room
-art is not used at all. The restaurant pack's food is drawn as collectible
-icons rather than world objects and is still ~1.5× large at 1×; that is the
-one knowing compromise.
+Everything lands on one **2px grid**: the half-scale packs are upscaled ×2, the
+full-scale ones are halved and then upscaled ×2, and the architecture in
+`tools/furniture.py` is drawn at half scale for the same reason. Mixing 1×1 and
+2×2 detail in one frame is what made the scene read as six artists' work.
+
+Modern Interiors is four times coarser than the object sprites and is not used.
+The restaurant pack's fruit is drawn as collectible icons rather than world
+objects — six times oversized against its own chef — and is replaced by Food
+Pack 2's groceries. Gritty Kitchen is an industrial horror kitchen: stained
+steel, pipes, grey-green palette. It would fight everything.
 
 ## Adding sprites
 
@@ -105,6 +112,9 @@ Full inventory in [`assets/README.md`](assets/README.md). The important ones:
   the app — the room is drawn rather than cropped, for the scale reasons above
   — so that restriction no longer binds anything that ships. The files stay in
   `assets/` for reference.
+- **Pixel Art Fridge Pack**, **Food Pack 2** and **Food Icons** are now the
+  main object sources. Food Icons ships a licence agreement in its folder that
+  needs reading before release; the other two shipped without one.
 - Kenney Interface Sounds, the TinyRPG font kit and the TinyRPG emoji pack are
   CC0.
 - Several packs — the Restaurant food sprites, the cat, Item Pack, Cozy Cute UI

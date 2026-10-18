@@ -2,10 +2,14 @@ import { spriteSize, spriteUrl } from '../lib/sprites'
 
 type Props = {
   k: string
-  x: number
+  x?: number
   y?: number
   /** Align the sprite's bottom edge to `bottom` instead of its top to `y`. */
   bottom?: number
+  /** Rows that hang below the contact line — a curled tail, a drooping leaf.
+   *  Without this a sprite rests on its lowest pixel, which leaves anything
+   *  with an overhang looking like it is hovering above the surface. */
+  overhang?: number
   flip?: boolean
   /** Quarter turn. Only right angles — any other angle would resample. */
   rotate?: boolean
@@ -18,12 +22,12 @@ type Props = {
 /** One sprite, placed in art pixels. Never scaled here — the whole room is
  *  scaled by one whole number higher up, which is what keeps every pack at the
  *  same apparent pixel size. */
-export function Sprite({ k, x, y, bottom, flip, rotate, rightAlign, className, style }: Props) {
+export function Sprite({ k, x, y, bottom, overhang = 0, flip, rotate, rightAlign, className, style }: Props) {
   const url = spriteUrl(k)
   if (!url) return null
   const { w, h } = spriteSize(k)
-  const top = bottom !== undefined ? bottom - h : (y ?? 0)
-  const left = rightAlign !== undefined ? rightAlign - w : x
+  const top = bottom !== undefined ? bottom - h + overhang : (y ?? 0)
+  const left = rightAlign !== undefined ? rightAlign - w : (x ?? 0)
   return (
     <img
       src={url}
