@@ -190,3 +190,9 @@ function localCraft(items: Item[]): Verdict {
     line: 'Technically food. Technically.',
   }
 }
+
+/** Built-in recipes the kitchen can already make in full. Free and instant,
+ *  which is why Basil's unprompted remarks use it instead of asking the model. */
+export function localMakings(items: Item[]): Meal[] {
+  return localSuggest(items).filter(m => !m.missing.length && m.ingredients.length > 1)
+}

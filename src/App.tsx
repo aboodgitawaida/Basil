@@ -7,6 +7,7 @@ import { AddBar } from './ui/AddBar'
 import { ItemCard } from './ui/ItemCard'
 import { useStore } from './lib/useStore'
 import { aiStatus, parseText, type ParseOutcome } from './lib/ai'
+import { useBasil } from './lib/useBasil'
 import { ParsePreview } from './ui/ParsePreview'
 import { addItems, moveItem, removeItem, setAmount, topQuickAdd } from './lib/inventory'
 import { useItemDrag, type DropTarget } from './lib/useItemDrag'
@@ -46,6 +47,7 @@ export function App() {
   const [creditsOpen, setCreditsOpen] = useState(false)
   const debug = new URLSearchParams(window.location.search).has('debug')
   const { state, loaded, apply, applyQuiet, undo, undoable, dismissUndo } = useStore()
+  const basil = useBasil(state.items, state.settings.dietary, fridgeOpen)
 
   // the room's light follows the real clock unless the switch says otherwise
   useEffect(() => {
@@ -176,7 +178,10 @@ export function App() {
                 settings: { ...s.settings, lightOverride: lampOn ? 1 : 0 },
               }))
             }}
-            onPet={() => sound.play('place', 0.35)}
+            onAskBasil={() => { sound.play('place', 0.35); void basil.ask() }}
+            onHushBasil={basil.hush}
+            basilSpeech={basil.speech}
+            basilThinking={basil.thinking}
             say={say}
           >
             {/* the board only exists while it is wanted: either something is
