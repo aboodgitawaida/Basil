@@ -29,11 +29,12 @@ const REASONS: Record<string, string> = {
 /** Turns a failed AI result into a sentence that says what to fix. The server
  *  puts the provider's HTTP status in `detail`, e.g. "gemini 404: ...". */
 export function failureMessage(reason?: string, detail?: string): string {
-  if (reason === 'no-key') return 'No API key set. Add GEMINI_API_KEY to .env and restart.'
+  if (reason === 'no-key') return 'No API key set. Add GEMINI_API_KEY or GROQ_API_KEY (in .env, or the host\'s environment variables) and restart.'
+  if (reason === 'rate-limited') return 'Basil has asked the model a lot just now. Try again in a minute.'
   if (reason === 'bad-json') return 'The model sent something unreadable.'
   const d = detail ?? ''
-  if (/\b404\b/.test(d)) return 'The model name was not found. It may have been retired: set BASIL_MODEL in .env.'
-  if (/\b(401|403)\b/.test(d) || /API key/i.test(d)) return 'The API key was rejected. Check GEMINI_API_KEY in .env.'
+  if (/\b404\b/.test(d)) return 'The model name was not found. It may have been retired: set BASIL_MODEL.'
+  if (/\b(401|403)\b/.test(d) || /API key/i.test(d)) return 'The API key was rejected. Check the key for your provider.'
   if (/\b429\b/.test(d)) return 'Rate limited by the model. Wait a minute and try again.'
   if (/\b5\d\d\b/.test(d)) return 'The model service is having trouble. Try again shortly.'
   if (/abort/i.test(d)) return 'The model took too long to answer.'
@@ -57,13 +58,14 @@ export async function parseText(text: string): Promise<ParseOutcome> {
   } catch {
     return fallback(REASONS.unreachable)
   }
-  if (!res.ok) return fallback(REASONS.unreachable)
 
+  // error replies carry a reason too (a 429 says it was rate-limited), so read
+  // the body before deciding what went wrong
   let body: any
   try {
     body = await res.json()
   } catch {
-    return fallback(REASONS['bad-json'])
+    return fallback(res.ok ? REASONS['bad-json'] : REASONS.unreachable)
   }
   if (!body?.ok) return fallback(`${failureMessage(body?.reason, body?.detail)} Using the simple parser.`)
 
