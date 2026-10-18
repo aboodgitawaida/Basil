@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { aiStatus, judgeCraft, parseItems, suggestMeals } from './handlers.js'
+import { RateLimiter, clientIp } from './rateLimit.js'
 
 const MAX_BODY = 64 * 1024
 
@@ -36,52 +37,72 @@ const send = (res: ServerResponse, status: number, body: unknown) => {
  * The provider key is read here, server-side. Nothing on these routes echoes
  * it back, and it is never part of the client bundle.
  */
-export async function handleApi(req: IncomingMessage, res: ServerResponse): Promise<boolean> {
-  const url = (req.url ?? '').split('?')[0]
-  if (!url.startsWith('/api/')) return false
-
-  if (url === '/api/status') {
-    send(res, 200, aiStatus())
-    return true
+export function createApiHandler(limiter: RateLimiter = new RateLimiter()) {
+  /** Only calls that would reach the model count against the visitor. */
+  const allowed = (req: IncomingMessage, res: ServerResponse): boolean => {
+    const verdict = limiter.take(clientIp(req))
+    if (verdict.ok) return true
+    res.setHeader('retry-after', String(verdict.retryAfterSec))
+    send(res, 429, {
+      ok: false,
+      reason: 'rate-limited',
+      detail: `too many requests this ${verdict.window}; retry in ${verdict.retryAfterSec}s`,
+    })
+    return false
   }
 
-  if (req.method !== 'POST') {
-    send(res, 405, { error: 'POST only' })
-    return true
-  }
+  return async function handleApi(req: IncomingMessage, res: ServerResponse): Promise<boolean> {
+    const url = (req.url ?? '').split('?')[0]
+    if (!url.startsWith('/api/')) return false
 
-  let body: any
-  try {
-    body = JSON.parse((await readBody(req)) || '{}')
-  } catch {
-    send(res, 400, { error: 'bad body' })
-    return true
-  }
-
-  try {
-    if (url === '/api/parse') {
-      const text = typeof body.text === 'string' ? body.text.slice(0, 4000) : ''
-      if (!text.trim()) return send(res, 400, { error: 'nothing to parse' }), true
-      send(res, 200, await parseItems(text))
+    if (url === '/api/status') {
+      send(res, 200, aiStatus())
       return true
     }
-    if (url === '/api/suggest') {
-      const inv = typeof body.inventory === 'string' ? body.inventory.slice(0, 8000) : ''
-      const dietary = Array.isArray(body.dietary) ? body.dietary.slice(0, 12).map(String) : []
-      send(res, 200, await suggestMeals(inv, dietary))
+
+    if (req.method !== 'POST') {
+      send(res, 405, { error: 'POST only' })
       return true
     }
-    if (url === '/api/craft') {
-      const ing = Array.isArray(body.ingredients) ? body.ingredients.slice(0, 9).map(String) : []
-      if (!ing.length) return send(res, 400, { error: 'empty board' }), true
-      send(res, 200, await judgeCraft(ing))
+
+    let body: any
+    try {
+      body = JSON.parse((await readBody(req)) || '{}')
+    } catch {
+      send(res, 400, { error: 'bad body' })
       return true
     }
-  } catch (err) {
-    send(res, 500, { ok: false, reason: 'unreachable', detail: String(err).slice(0, 200) })
+
+    try {
+      if (url === '/api/parse') {
+        const text = typeof body.text === 'string' ? body.text.slice(0, 4000) : ''
+        if (!text.trim()) return send(res, 400, { error: 'nothing to parse' }), true
+        if (!allowed(req, res)) return true
+        send(res, 200, await parseItems(text))
+        return true
+      }
+      if (url === '/api/suggest') {
+        const inv = typeof body.inventory === 'string' ? body.inventory.slice(0, 8000) : ''
+        const dietary = Array.isArray(body.dietary) ? body.dietary.slice(0, 12).map(String) : []
+        if (!allowed(req, res)) return true
+        send(res, 200, await suggestMeals(inv, dietary))
+        return true
+      }
+      if (url === '/api/craft') {
+        const ing = Array.isArray(body.ingredients) ? body.ingredients.slice(0, 9).map(String) : []
+        if (!ing.length) return send(res, 400, { error: 'empty board' }), true
+        if (!allowed(req, res)) return true
+        send(res, 200, await judgeCraft(ing))
+        return true
+      }
+    } catch (err) {
+      send(res, 500, { ok: false, reason: 'unreachable', detail: String(err).slice(0, 200) })
+      return true
+    }
+
+    send(res, 404, { error: 'no such route' })
     return true
   }
-
-  send(res, 404, { error: 'no such route' })
-  return true
 }
+
+export const handleApi = createApiHandler()
