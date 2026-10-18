@@ -6,7 +6,8 @@ import { Toast } from './ui/Toast'
 import { AddBar } from './ui/AddBar'
 import { ItemCard } from './ui/ItemCard'
 import { useStore } from './lib/useStore'
-import { keywordParse } from './lib/keywordParser'
+import { aiStatus, parseText, type ParseOutcome } from './lib/ai'
+import { ParsePreview } from './ui/ParsePreview'
 import { addItems, moveItem, removeItem, setAmount, topQuickAdd } from './lib/inventory'
 import { useItemDrag } from './lib/useItemDrag'
 import { spriteSize, spriteUrl } from './lib/sprites'
@@ -17,6 +18,9 @@ export function App() {
   const [fridgeOpen, setFridgeOpen] = useState(false)
   const [cupboardOpen, setCupboardOpen] = useState(false)
   const [picked, setPicked] = useState<Item | null>(null)
+  const [pending, setPending] = useState<ParseOutcome | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [hint, setHint] = useState<string | undefined>(undefined)
   const debug = new URLSearchParams(window.location.search).has('debug')
   const { state, loaded, apply, undo, undoable, dismissUndo } = useStore()
 
@@ -26,12 +30,31 @@ export function App() {
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  const add = useCallback((text: string) => {
-    const drafts = keywordParse(text)
-    if (!drafts.length) return
-    const what = drafts.length === 1 ? drafts[0].displayName : `${drafts.length} things`
-    apply(`Put ${what} away.`, addItems(drafts))
-  }, [apply])
+  // Nothing is written until the preview is accepted.
+  const add = useCallback(async (text: string) => {
+    setBusy(true)
+    try {
+      const outcome = await parseText(text)
+      if (outcome.drafts.length) setPending(outcome)
+    } finally {
+      setBusy(false)
+    }
+  }, [])
+
+  const commit = useCallback(() => {
+    if (!pending?.drafts.length) return
+    const what = pending.drafts.length === 1
+      ? pending.drafts[0].displayName
+      : `${pending.drafts.length} things`
+    apply(`Put ${what} away.`, addItems(pending.drafts))
+    setPending(null)
+  }, [pending, apply])
+
+  useEffect(() => {
+    void aiStatus().then(s => {
+      if (!s.configured) setHint('No model key set — using the simple parser.')
+    })
+  }, [])
 
   const change = (fn: (s: ReturnType<typeof useStore>['state']) => typeof state, label: string) =>
     apply(label, fn)
@@ -75,11 +98,26 @@ export function App() {
       <div className="dock">
         <Toast undoable={undoable} onUndo={undo} onDismiss={dismissUndo} />
         <AddBar
-          onSubmit={add}
+          onSubmit={t => void add(t)}
           quick={topQuickAdd(state)}
-          onQuick={name => add(name)}
+          onQuick={name => void add(name)}
+          busy={busy}
+          hint={hint}
         />
       </div>
+
+      {pending && (
+        <ParsePreview
+          outcome={pending}
+          onConfirm={commit}
+          onCancel={() => setPending(null)}
+          onDrop={i => setPending(p => {
+            if (!p) return p
+            const drafts = p.drafts.filter((_, n) => n !== i)
+            return drafts.length ? { ...p, drafts } : null
+          })}
+        />
+      )}
 
       {picked && (
         <ItemCard

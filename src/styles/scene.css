@@ -248,3 +248,17 @@
 }
 .drag-ghost img { width: 100%; height: 100%; image-rendering: pixelated; }
 .shelf-item--lifted { opacity: 0.25; }
+
+/* ---- parse preview ---- */
+.parsed { list-style: none; margin: 10px 0 14px; max-height: 40vh; overflow: auto; }
+.parsed__row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 2px solid var(--umber);
+}
+.parsed__icon { display: block; overflow: hidden; flex: 0 0 auto; }
+.parsed__icon img { display: block; image-rendering: pixelated; transform: scale(2); transform-origin: top left; }
+.parsed__text { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
+.parsed__text > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

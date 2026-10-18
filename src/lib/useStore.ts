@@ -27,24 +27,33 @@ export function useStore() {
     return () => window.clearTimeout(timer.current)
   }, [state, loaded])
 
+  // The current state is tracked in a ref so `apply` can read it without
+  // doing work inside a setState updater. Updaters must stay pure: React
+  // double-invokes them in development, which applied every change twice.
+  const latest = useRef(state)
+  latest.current = state
+
   const apply = useCallback((label: string, fn: (s: AppState) => AppState) => {
-    setState(prev => {
-      setUndoable({ label, before: prev })
-      return fn(prev)
-    })
+    const before = latest.current
+    const next = fn(before)
+    latest.current = next
+    setUndoable({ label, before })
+    setState(next)
   }, [])
 
   /** Changes that shouldn't offer an undo — settings toggles, say. */
   const applyQuiet = useCallback((fn: (s: AppState) => AppState) => {
-    setState(prev => fn(prev))
+    const next = fn(latest.current)
+    latest.current = next
+    setState(next)
   }, [])
 
   const undo = useCallback(() => {
-    setUndoable(current => {
-      if (current) setState(current.before)
-      return null
-    })
-  }, [])
+    if (!undoable) return
+    latest.current = undoable.before
+    setState(undoable.before)
+    setUndoable(null)
+  }, [undoable])
 
   const dismissUndo = useCallback(() => setUndoable(null), [])
 
