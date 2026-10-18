@@ -1,9 +1,16 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import { aiStatus, judgeCraft, parseItems, suggestMeals } from './handlers'
+import { aiStatus, judgeCraft, parseItems, suggestMeals } from './handlers.js'
 
 const MAX_BODY = 64 * 1024
 
 function readBody(req: IncomingMessage): Promise<string> {
+  // Vercel parses JSON bodies before the handler runs and drains the stream,
+  // so reading it again would hang. Use what it already parsed.
+  const parsed = (req as { body?: unknown }).body
+  if (parsed !== undefined && parsed !== null) {
+    const text = typeof parsed === 'string' ? parsed : JSON.stringify(parsed)
+    return text.length > MAX_BODY ? Promise.reject(new Error('body too large')) : Promise.resolve(text)
+  }
   return new Promise((resolve, reject) => {
     let data = ''
     req.on('data', chunk => {

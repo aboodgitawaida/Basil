@@ -1,4 +1,4 @@
-import { apiKey, type ProviderConfig } from './config'
+import { apiKey, type ProviderConfig } from './config.js'
 
 /** Everything a provider has to do: take a system prompt, a user prompt and a
  *  JSON schema, and come back with a string that should parse as JSON. */

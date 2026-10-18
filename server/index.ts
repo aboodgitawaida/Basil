@@ -1,6 +1,6 @@
 import 'dotenv/config'
 import express from 'express'
-import { handleApi } from './api'
+import { handleApi } from './api.js'
 
 const app = express()
 const port = Number(process.env.PORT ?? 8787)
