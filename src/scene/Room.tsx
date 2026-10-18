@@ -1,8 +1,12 @@
+import {
+  CEILING_H, COUNTER, COUNTER_TOP, FLOOR_Y, FRIDGE, LAMP, PROPS,
+  ROOM,
+} from '../lib/room'
 import { spriteSize } from '../lib/sprites'
-import { DADO_H, FLOOR_Y, LAYOUT, ROOM, TRIM_H } from '../lib/room'
 import { Sprite } from './Sprite'
 import { Fridge } from './Fridge'
 import { Cupboard } from './Cupboard'
+import { Window } from './Window'
 
 type Props = {
   fridgeOpen: boolean
@@ -11,43 +15,72 @@ type Props = {
   onCupboard: () => void
 }
 
-/** Anything standing on the floor gets a one-pixel contact shadow, which is
- *  what stops furniture looking like it is floating. */
-function Shadow({ x, w }: { x: number; w: number }) {
-  return <i className="room__contact" style={{ left: x - 1, top: FLOOR_Y - 1, width: w + 2 }} />
+/** Contact shadow. The light is up and to the left, so shadows fall right. */
+function Shadow({ x, w, y, soft = false }: { x: number; w: number; y: number; soft?: boolean }) {
+  return (
+    <i
+      className={soft ? 'contact contact--soft' : 'contact'}
+      style={{ left: x + 1, top: y - 1, width: w }}
+    />
+  )
 }
 
 export function Room({ fridgeOpen, cupboardOpen, onFridge, onCupboard }: Props) {
-  const counter = spriteSize('room/counter')
-  const cupboard = spriteSize('room/cupboard')
-  const counterTop = FLOOR_Y - counter.h
-  const counterW = counter.w * LAYOUT.counter.units
-  const dadoTop = FLOOR_Y - DADO_H - 2
+  const cat = spriteSize('cat/sleep-0')
 
   return (
     <div className="room" style={{ width: ROOM.w, height: ROOM.h }}>
-      <div className="room__plaster" style={{ height: dadoTop }} />
-      <div className="room__trim" style={{ top: dadoTop - TRIM_H, height: TRIM_H }} />
-      <div className="room__dado" style={{ top: dadoTop, height: DADO_H }} />
-      <div className="room__skirting" style={{ top: FLOOR_Y - 2 }} />
+      <div className="room__wall" style={{ top: CEILING_H, height: FLOOR_Y - CEILING_H }} />
+      <div className="room__ceiling" style={{ height: CEILING_H }} />
       <div className="room__floor" style={{ top: FLOOR_Y, height: ROOM.h - FLOOR_Y }} />
+      <div className="room__skirting" style={{ top: FLOOR_Y - 7 }} />
 
-      <Sprite k="room/window" x={LAYOUT.window.x} y={LAYOUT.window.y} />
-      <Sprite k="room/wall-cabinet" x={LAYOUT.wallCabinet.x} y={LAYOUT.wallCabinet.y} />
+      {/* daylight on the wall, falling away from the window */}
+      <div className="room__daylight" style={{ top: CEILING_H, height: FLOOR_Y - CEILING_H }} />
 
-      <Shadow x={LAYOUT.fridge.x} w={LAYOUT.fridge.w} />
-      <Shadow x={LAYOUT.counter.x} w={counterW} />
-      <Shadow x={LAYOUT.cupboard.x} w={cupboard.w} />
+      <Window />
 
-      {Array.from({ length: LAYOUT.counter.units }, (_, i) => (
-        <Sprite key={i} k="room/counter" x={LAYOUT.counter.x + i * counter.w} bottom={FLOOR_Y} />
+      {/* ceiling lamp — short cord, hung from the ceiling plane above it */}
+      <i className="room__cord" style={{ left: LAMP.cordX, top: LAMP.cordTop, height: LAMP.shadeY - LAMP.cordTop }} />
+      <Sprite k="room/pendant" x={LAMP.x} y={LAMP.shadeY} />
+
+      <Sprite k="room/clock" x={148} y={8} />
+
+      <Cupboard open={cupboardOpen} onToggle={onCupboard} />
+
+      {/* counter run — a door unit and a drawer stack, so the lower half of
+          the frame isn't one flat field */}
+      <Sprite k="room/counter" x={COUNTER.x} bottom={FLOOR_Y} />
+      <Sprite k="room/counter-drawers" x={COUNTER.x + COUNTER.w} bottom={FLOOR_Y} />
+      <i
+        className="room__worktop"
+        style={{ left: COUNTER.x, top: COUNTER_TOP, width: COUNTER.w * COUNTER.units }}
+      />
+
+      <Shadow x={14} w={cat.w - 2} y={COUNTER_TOP} soft />
+      <Sprite k="cat/sleep-0" x={14} bottom={COUNTER_TOP} />
+
+      {PROPS.map(([k, x, bottom]) => (
+        <span key={k}>
+          <Shadow x={x} w={spriteSize(k).w - 2} y={bottom} soft />
+          <Sprite k={k} x={x} bottom={bottom} />
+        </span>
       ))}
 
-      <Sprite k="room/lamp" x={LAYOUT.lamp.x} bottom={counterTop + 1} />
-      <Sprite k="room/plant" x={LAYOUT.plant.x} bottom={FLOOR_Y - cupboard.h} />
-
+      {/* light from an open fridge, stepped rather than tapered: a diagonal
+          clip would anti-alias and soften the whole scene */}
+      {fridgeOpen && [0, 1, 2, 3].map(i => (
+        <i
+          key={i}
+          className="room__spill"
+          style={{
+            left: FRIDGE.x - 26 + i * 7, top: FLOOR_Y + i * 3,
+            width: 26 - i * 7, height: 3, opacity: 0.2 - i * 0.03,
+          }}
+        />
+      ))}
+      <Shadow x={FRIDGE.x} w={FRIDGE.w} y={FLOOR_Y} />
       <Fridge open={fridgeOpen} onToggle={onFridge} />
-      <Cupboard open={cupboardOpen} onToggle={onCupboard} />
     </div>
   )
 }
