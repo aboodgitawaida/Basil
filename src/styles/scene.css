@@ -55,6 +55,14 @@
     inset 0 -1px 0 var(--wood-dark);
 }
 
+/* the fridge interior, lit. The pack's shelves are a cool blue; this washes
+   warm light over them so an open fridge is the brightest thing on screen. */
+.fridge__glow {
+  position: absolute;
+  background: var(--highlight);
+  pointer-events: none;
+}
+
 /* light spilling out of an open fridge */
 .room__spill {
   position: absolute;

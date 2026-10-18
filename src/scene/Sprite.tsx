@@ -2,7 +2,7 @@ import { spriteSize, spriteUrl } from '../lib/sprites'
 
 type Props = {
   k: string
-  x: number
+  x?: number
   y?: number
   /** Align the sprite's bottom edge to `bottom` instead of its top to `y`. */
   bottom?: number
@@ -23,7 +23,7 @@ export function Sprite({ k, x, y, bottom, flip, rotate, rightAlign, className, s
   if (!url) return null
   const { w, h } = spriteSize(k)
   const top = bottom !== undefined ? bottom - h : (y ?? 0)
-  const left = rightAlign !== undefined ? rightAlign - w : x
+  const left = rightAlign !== undefined ? rightAlign - w : (x ?? 0)
   return (
     <img
       src={url}

@@ -24,6 +24,9 @@
   --gold-dark: #8a6a2e;
   --gold: #c49a3c;
   --mauve: #6b5a6b;
+  --sage: #8d9271;
+  --sage-light: #c8c796;
+  --ice: #cfe8e4;
 
   /* roles — components read these, never the raw names above */
   --room-wall:   var(--tan);
