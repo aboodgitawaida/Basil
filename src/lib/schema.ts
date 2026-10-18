@@ -105,11 +105,13 @@ export function guessLocation(name: string, category: Category, raw = ''): Locat
 
 const CATEGORY_WORDS: Array<[RegExp, Category]> = [
   [/milk|cream|cheese|cheddar|brie|feta|gouda|parmesan|mozzarella|yog|yoghurt|butter|egg/, 'dairy'],
+  // before produce, so "orange juice" is a drink; whole words, so "chocolate"
+  // is not cola and "watermelon" is not water
+  [/\b(juice|water|wine|beer|cola|soda|squash|cordial|lemonade|cider)s?\b/, 'drink'],
   [/chicken|beef|steak|pork|lamb|bacon|ham|mince|fish|turkey|drumstick|sausage/, 'meat'],
   [/apple|pear|banana|orange|berry|lettuce|salad|broccoli|carrot|onion|potato|tomato|pumpkin|melon|veg|fruit/, 'produce'],
   [/bread|pasta|rice|flour|oat|cereal|noodle|couscous|quinoa|lentil/, 'grain'],
   [/ketchup|mustard|sauce|mayo|vinegar|oil|jam|honey|pickle|marmite|paste/, 'condiment'],
-  [/juice|water|wine|beer|cola|soda|squash|cordial|lemonade|cider/, 'drink'],
   [/\bfrozen\b|ice cream|\bpeas?\b|\bchips\b/, 'frozen'],
   [/tin|can|soup|bean|chickpea|tuna/, 'tinned'],
   [/sugar|baking|yeast|vanilla/, 'baking'],
