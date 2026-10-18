@@ -21,7 +21,9 @@ export const PANTRY = { x: 0, y: FLOOR_Y - 90, w: 52, h: 90 } as const
 export const WINDOW = { x: 4, y: 24, w: 64, paneH: 72 } as const
 export const LAMP = { x: 76, cordX: 87, shadeY: 12 } as const
 export const CLOCK = { x: 146, y: 10 } as const
-export const CAT = { x: 4 } as const
+/** `overhang` is how much of the sprite hangs past the worktop edge: the
+ *  curled tail, which drapes over the front rather than resting on it. */
+export const CAT = { x: 4, overhang: 10 } as const
 
 /** Surface clutter, kept to one group with space around it.
  *  [sprite, x] in centimetres; everything stands on the worktop. */
