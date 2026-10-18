@@ -81,7 +81,7 @@ def counter_drawers():
 # The pantry is a base cabinet rather than a wall unit: the fridge door sweeps
 # a 70cm arc across the wall above the counter, and anything mounted there is
 # both hidden and unclickable while the fridge is open.
-PANTRY_SWING = [0, 5, 9, 12]
+PANTRY_SWING = [0, 7, 14, 20]
 
 
 def pantry_carcass():

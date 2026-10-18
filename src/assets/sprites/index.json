@@ -345,15 +345,15 @@
  },
  "room/pantry-door-1": {
   "h": 68,
-  "w": 34
+  "w": 30
  },
  "room/pantry-door-2": {
   "h": 68,
-  "w": 26
+  "w": 16
  },
  "room/pantry-door-3": {
   "h": 68,
-  "w": 20
+  "w": 4
  },
  "room/pendant": {
   "h": 16,

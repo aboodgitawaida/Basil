@@ -1,14 +1,13 @@
+import type { ReactNode } from 'react'
 import { FRIDGE } from '../lib/room'
-import { useSteps } from '../lib/useSteps'
 import { Sprite } from './Sprite'
 
 /** The pack ships five frames of door swing. */
-const FRAMES = 5
+export const FRIDGE_FRAMES = 5
 
-type Props = { open: boolean; onToggle: () => void }
+type Props = { frame: number; open: boolean; onToggle: () => void; children?: ReactNode }
 
-export function Fridge({ open, onToggle }: Props) {
-  const frame = useSteps(open, FRAMES, 55)
+export function Fridge({ frame, open, onToggle, children }: Props) {
   const { right, y, w, h } = FRIDGE
 
   return (
@@ -26,8 +25,10 @@ export function Fridge({ open, onToggle }: Props) {
         onClick={onToggle}
         aria-label={open ? 'Close the fridge' : 'Open the fridge'}
         aria-expanded={open}
+        data-drop={open ? 'fridge' : undefined}
         style={{ left: right - w, top: y, width: w, height: h }}
       />
+      {children}
     </>
   )
 }

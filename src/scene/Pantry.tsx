@@ -1,16 +1,15 @@
+import type { ReactNode } from 'react'
 import { PANTRY } from '../lib/room'
-import { useSteps } from '../lib/useSteps'
 import { Sprite } from './Sprite'
 
-const FRAMES = 4
+export const PANTRY_FRAMES = 4
 
-type Props = { open: boolean; onToggle: () => void }
+type Props = { frame: number; open: boolean; onToggle: () => void; children?: ReactNode }
 
 /** The base cabinet under the left of the worktop. It is a base unit rather
  *  than a wall cupboard because the fridge door sweeps the wall above the
  *  counter, which would leave a wall unit hidden and unclickable. */
-export function Pantry({ open, onToggle }: Props) {
-  const frame = useSteps(open, FRAMES, 50)
+export function Pantry({ frame, open, onToggle, children }: Props) {
   const { x, y, w, h } = PANTRY
 
   return (
@@ -22,8 +21,10 @@ export function Pantry({ open, onToggle }: Props) {
         onClick={onToggle}
         aria-label={open ? 'Close the cupboard' : 'Open the cupboard'}
         aria-expanded={open}
+        data-drop={open ? 'cupboard' : undefined}
         style={{ left: x, top: y + 8, width: w, height: h - 8 }}
       />
+      {children}
     </>
   )
 }

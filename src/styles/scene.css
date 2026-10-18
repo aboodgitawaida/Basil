@@ -117,3 +117,134 @@
 .debug__key { color: var(--text-dim); }
 .debug__thumb { display: block; transform: scale(2); transform-origin: top left; }
 .debug__thumb img { display: block; image-rendering: pixelated; }
+
+/* ---- app shell ---- */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--ink);
+}
+.app .stage { flex: 1 1 auto; min-height: 0; }
+
+/* ---- items on shelves ---- */
+.shelf-item {
+  position: absolute;
+  display: block;
+  padding: 0;
+  background: none;
+  line-height: 0;
+}
+.shelf-item:hover { filter: brightness(1.15); }
+/* frozen things read colder; a wash, not an outline */
+.shelf-item__frost {
+  position: absolute;
+  inset: 0;
+  background: var(--ice);
+  opacity: 0.35;
+  mix-blend-mode: screen;
+}
+/* going off soon: a quiet pip, never an alarm */
+.shelf-item__pip {
+  position: absolute;
+  top: -3px;
+  right: -2px;
+  width: 3px;
+  height: 3px;
+  background: var(--gold);
+  box-shadow: 0 0 0 1px var(--ink);
+}
+.shelf-item--soon { filter: saturate(0.75); }
+
+/* ---- the add bar ---- */
+.addbar {
+  flex: 0 0 auto;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  background: var(--shadow);
+  border-top: 2px solid var(--umber);
+}
+.addbar__quick { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.addbar__row { display: flex; gap: 8px; }
+.addbar__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 8px 10px;
+  font: 24px/1 'TinyRPG', monospace;
+  color: var(--text);
+  background: var(--ink);
+  border: 2px solid var(--umber);
+  outline: none;
+}
+.addbar__input:focus { border-color: var(--wood-light); }
+.addbar__input::placeholder { color: var(--wood-dark); }
+.addbar__go {
+  padding: 8px 12px;
+  color: var(--ink);
+  background: var(--gold);
+  border: 2px solid var(--gold-dark);
+  white-space: nowrap;
+}
+.addbar__go:disabled { background: var(--wood-dark); border-color: var(--umber); color: var(--text-dim); }
+.addbar__hint { margin-top: 6px; color: var(--text-dim); }
+
+/* ---- chips ---- */
+.chip {
+  padding: 5px 9px;
+  color: var(--text);
+  background: var(--umber);
+  border: 2px solid var(--wood-darkest);
+}
+.chip--on { background: var(--gold); border-color: var(--gold-dark); color: var(--ink); }
+.chip--quiet { background: transparent; border-color: var(--umber); color: var(--text-dim); }
+
+/* ---- bottom sheet ---- */
+.sheet {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  align-items: end;
+  justify-items: center;
+  background: rgb(10 8 14 / 0.6);
+  z-index: 20;
+}
+.sheet__panel {
+  width: min(100%, 420px);
+  padding: 14px;
+  background: var(--shadow);
+  border-top: 2px solid var(--wood-light);
+}
+.sheet__head { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+.sheet__icon { display: block; overflow: hidden; }
+.sheet__icon img { display: block; image-rendering: pixelated; transform: scale(2); transform-origin: top left; }
+.sheet__dim { color: var(--text-dim); margin: 4px 0; }
+.sheet__row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.sheet__row--end { justify-content: space-between; margin-bottom: 0; }
+
+/* ---- toast ---- */
+.toast {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--umber);
+  border: 2px solid var(--wood-light);
+  z-index: 30;
+}
+.toast__undo { color: var(--gold); text-decoration: underline; }
+
+/* ---- dragging ---- */
+.dock { position: relative; flex: 0 0 auto; }
+.drag-ghost {
+  position: fixed;
+  z-index: 40;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(2px 2px 0 rgb(10 8 14 / 0.5));
+}
+.drag-ghost img { width: 100%; height: 100%; image-rendering: pixelated; }
+.shelf-item--lifted { opacity: 0.25; }
