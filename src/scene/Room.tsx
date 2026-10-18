@@ -9,6 +9,10 @@ import { Window } from './Window'
 import { Shelves } from './Shelves'
 import { useSteps } from '../lib/useSteps'
 import type { Item } from '../lib/schema'
+import type { Sky } from '../lib/weather'
+import { Basil } from './Basil'
+import type { Mood } from './Bubble'
+import { Bubble } from './Bubble'
 
 type Props = {
   fridgeOpen: boolean
@@ -25,6 +29,14 @@ type Props = {
   /** something is on the board, so the counter clutter gets out of the way */
   crafting?: boolean
   onBoard?: readonly (string | null)[]
+  /** 0 is noon, 1 is the middle of the night */
+  night: number
+  sky: Sky
+  skyColour: string
+  lampOn: boolean
+  onLamp: () => void
+  onPet: () => void
+  say: Mood | null
   children?: React.ReactNode
 }
 
@@ -39,7 +51,7 @@ function Shadow({ x, w, y, soft = false }: { x: number; w: number; y: number; so
 }
 
 export function Room({
-  fridgeOpen, cupboardOpen, onFridge, onCupboard, items, itemHandlers, draggingId, crafting, onBoard, children,
+  fridgeOpen, cupboardOpen, onFridge, onCupboard, items, itemHandlers, draggingId, crafting, onBoard, night, sky, skyColour, lampOn, onLamp, onPet, say, children,
 }: Props) {
   const cat = spriteSize('cat/sleep-0')
   const fridgeFrame = useSteps(fridgeOpen, FRIDGE_FRAMES, 55)
@@ -52,7 +64,7 @@ export function Room({
       <div className="room__floor" style={{ top: FLOOR_Y, height: ROOM.h - FLOOR_Y }} />
       <div className="room__skirting" style={{ top: FLOOR_Y - 8 }} />
 
-      <Window />
+      <Window sky={sky} skyColour={skyColour} />
 
       {/* ceiling lamp, hung from the ceiling plane above it */}
       <i
@@ -62,6 +74,16 @@ export function Room({
       <Sprite k="room/pendant" x={LAMP.x} y={LAMP.shadeY} />
 
       <Sprite k="room/clock" x={CLOCK.x} y={CLOCK.y} />
+
+      {/* the dimmer: one switch, no theme toggle */}
+      <button
+        className="hit"
+        style={{ left: 106, top: 128, width: 14, height: 22 }}
+        onClick={onLamp}
+        aria-label={lampOn ? 'Turn the light off' : 'Turn the light on'}
+      >
+        <Sprite k={lampOn ? 'room/switch-on' : 'room/switch-off'} x={0} y={0} />
+      </button>
 
       {/* counter run — the pantry on the left, drawers on the right, one worktop */}
       <Pantry frame={pantryFrame} open={cupboardOpen} onToggle={onCupboard}>
@@ -74,7 +96,7 @@ export function Room({
       />
 
       <Shadow x={CAT.x + 4} w={cat.w - 10} y={COUNTER_TOP} soft />
-      <Sprite k="cat/sleep-0" x={CAT.x} bottom={COUNTER_TOP} overhang={CAT.overhang} />
+      <Basil disturbed={fridgeOpen} onPet={onPet} mood={null} />
 
       {!crafting && PROPS.map(([k, x]) => (
         <span key={k}>
@@ -89,6 +111,17 @@ export function Room({
       <Fridge frame={fridgeFrame} open={fridgeOpen} onToggle={onFridge}>
         <Shelves where="fridge" frame={fridgeFrame} items={items} draggingId={draggingId} onBoard={onBoard} {...itemHandlers} />
       </Fridge>
+
+      {/* lighting last, over everything, so it tints the whole room at once */}
+      <div
+        className="room__dark"
+        style={{ opacity: night * (lampOn ? 0.55 : 0.85) }}
+      />
+      {lampOn && night > 0.1 && (
+        <div className="room__lamp" style={{ opacity: 0.12 + night * 0.3 }} />
+      )}
+
+      {say && <Bubble mood={say} x={86} y={54} />}
     </div>
   )
 }

@@ -1,4 +1,28 @@
 {
+ "bubble/eager": {
+  "h": 128,
+  "w": 160
+ },
+ "bubble/idea": {
+  "h": 128,
+  "w": 160
+ },
+ "bubble/love": {
+  "h": 128,
+  "w": 160
+ },
+ "bubble/ok": {
+  "h": 128,
+  "w": 160
+ },
+ "bubble/question": {
+  "h": 128,
+  "w": 160
+ },
+ "bubble/sleepy": {
+  "h": 128,
+  "w": 160
+ },
  "cat/sleep-0": {
   "h": 36,
   "w": 48
@@ -362,6 +386,14 @@
  "room/skirting": {
   "h": 32,
   "w": 32
+ },
+ "room/switch-off": {
+  "h": 22,
+  "w": 14
+ },
+ "room/switch-on": {
+  "h": 22,
+  "w": 14
  },
  "room/window": {
   "h": 80,

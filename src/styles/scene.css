@@ -325,3 +325,82 @@
 .book__icon img { display: block; image-rendering: pixelated; }
 .book__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .book__text > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---- Basil ---- */
+.basil { position: absolute; padding: 0; background: none; line-height: 0; }
+.zzz { position: absolute; width: 20px; height: 18px; pointer-events: none; }
+.zzz__z {
+  position: absolute;
+  font: 12px/1 'TinyRPG', monospace;
+  color: var(--cream);
+  opacity: 0;
+  animation: zdrift 3200ms steps(4) infinite;
+}
+.zzz__z--a { left: 0; animation-delay: 0ms; }
+.zzz__z--b { left: 6px; animation-delay: 900ms; }
+.zzz__z--c { left: 12px; animation-delay: 1800ms; }
+@keyframes zdrift {
+  0%   { opacity: 0; transform: translateY(4px); }
+  25%  { opacity: 1; transform: translateY(0); }
+  60%  { opacity: 1; transform: translateY(-4px); }
+  100% { opacity: 0; transform: translateY(-8px); }
+}
+
+.bubble {
+  position: absolute;
+  display: block;
+  image-rendering: pixelated;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ---- lighting: one overlay, driven by the clock or the switch ---- */
+.room__dark {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--blue-dark);
+  mix-blend-mode: multiply;
+  z-index: 4;
+}
+/* warm pool under the lamp, hard-edged like everything else */
+.room__lamp {
+  position: absolute;
+  left: 46px;
+  top: 8px;
+  width: 100px;
+  height: 120px;
+  pointer-events: none;
+  background: var(--gold);
+  mix-blend-mode: screen;
+  z-index: 4;
+}
+
+/* ---- weather in the pane ---- */
+.fall { position: absolute; top: 0; line-height: 0; animation-name: fall; animation-timing-function: linear; animation-iteration-count: infinite; }
+.fall--snow { animation-name: fallsnow; }
+@keyframes fall { from { transform: translateY(-30px); } to { transform: translateY(100%); } }
+@keyframes fallsnow {
+  from { transform: translateY(-10px) translateX(0); }
+  50%  { transform: translateY(50%) translateX(3px); }
+  to   { transform: translateY(100%) translateX(0); }
+}
+
+/* ---- credits ---- */
+.credits__link {
+  position: fixed;
+  left: 8px;
+  top: 6px;
+  color: var(--wood-dark);
+  z-index: 6;
+}
+.credits__link:hover { color: var(--text-dim); }
+.credits { list-style: none; margin: 8px 0 14px; }
+.credits__row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 7px 0;
+  border-bottom: 2px solid var(--umber);
+}
+.credits__warn { color: var(--gold); }
