@@ -1,0 +1,193 @@
+.stage {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  background: var(--ink);
+}
+
+.stage__scaler {
+  transform: scale(var(--scale));
+  transform-origin: center center;
+  image-rendering: pixelated;
+}
+
+.room {
+  position: relative;
+  overflow: hidden;
+  background: var(--room-air);
+}
+
+.room__plaster {
+  position: absolute;
+  inset: 0 0 auto 0;
+  background: var(--room-wall);
+}
+
+/* the pack's own striped border, used once as a picture rail */
+.room__trim {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: url('../assets/sprites/room/wall-trim.png') repeat-x;
+}
+
+/* wood wainscot at floor level */
+.room__dado {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: url('../assets/sprites/room/wall-panel.png') repeat-x;
+}
+
+/* one-pixel contact shadow so furniture sits on the floor */
+.room__contact {
+  position: absolute;
+  height: 2px;
+  background: var(--ink);
+  opacity: 0.35;
+}
+
+.room__skirting {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: url('../assets/sprites/room/skirting.png') repeat-x;
+}
+
+.room__floor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: url('../assets/sprites/room/floor.png') repeat;
+}
+
+/* ---- fridge: drawn in code, because no pack has one ---- */
+.fridge { position: absolute; display: block; }
+
+.fridge__body {
+  position: absolute;
+  inset: 0;
+  background: var(--fridge-body);
+  box-shadow:
+    inset  1px  0 0 var(--mist),
+    inset -1px  0 0 var(--fridge-edge),
+    inset  0 -1px 0 var(--fridge-edge);
+}
+
+.fridge__cell {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  background: var(--fridge-in);
+  box-shadow:
+    inset 0  1px 0 var(--ink),
+    inset 2px 0 0 var(--slate);   /* light falls off towards the hinge */
+}
+
+.fridge__shelf {
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  height: 1px;
+  background: var(--steel);
+  box-shadow: 0 1px 0 var(--ink);
+}
+
+.fridge__door {
+  position: absolute;
+  left: 0;
+  background: var(--fridge-body);
+  /* top highlight, hinge-side highlight, seam and shut line in whole pixels */
+  box-shadow:
+    inset  1px  0 0 var(--paper),
+    inset  0  1px 0 var(--paper),
+    inset -1px  0 0 var(--fridge-edge),
+    inset  0 -1px 0 var(--wood-deep);
+}
+
+.fridge__handle {
+  position: absolute;
+  right: 3px;
+  width: 2px;
+  height: 9px;
+  background: var(--wood-deep);
+  box-shadow: 1px 0 0 var(--paper);
+}
+
+/* the lit edge of a door that is standing open */
+.fridge__edge {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  background: var(--cream-light);
+}
+
+.fridge__feet {
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  height: 2px;
+  background: var(--slate);
+}
+
+/* ---- cupboard: pack sprite, doors cut apart and slid ---- */
+.cupboard { position: absolute; display: block; }
+
+.cupboard__inside {
+  position: absolute;
+  inset: 3px 3px 6px 3px;
+  background: var(--cupboard-in);
+  box-shadow: inset 0 0 0 1px var(--wood-deep);
+}
+
+.cupboard__shelf {
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  height: 1px;
+  background: var(--wood-pale);
+  box-shadow: 0 1px 0 var(--ink);
+}
+
+.cupboard__door {
+  position: absolute;
+  top: 0;
+  display: block;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+/* ---- dev only ---- */
+.debug {
+  position: fixed;
+  inset: auto 0 0 0;
+  max-height: 46vh;
+  overflow: auto;
+  padding: 8px;
+  background: var(--ink);
+  border-top: 2px solid var(--panel-edge);
+}
+.debug__head { color: var(--amber); margin-bottom: 6px; }
+.debug__bad { color: var(--red); }
+.debug__grid { display: flex; flex-wrap: wrap; gap: 10px; list-style: none; }
+.debug__cell {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  width: 104px;
+  padding: 4px;
+  background: var(--shadow);
+  text-align: center;
+}
+.debug__cell img { image-rendering: pixelated; }
+.debug__key { color: var(--text-dim); }
+
+/* thumbnails are scaled by a whole number, like everything else */
+.debug__thumb {
+  display: block;
+  transform: scale(2);
+  transform-origin: top left;
+}
+.debug__thumb img { display: block; image-rendering: pixelated; }

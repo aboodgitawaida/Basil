@@ -1,0 +1,42 @@
+@font-face {
+  font-family: 'TinyRPG';
+  src: url('../assets/fonts/TinyRPG-FineFantasyStrategies.ttf') format('truetype');
+  font-display: block;
+}
+@font-face {
+  font-family: 'TinyRPG Badge';
+  src: url('../assets/fonts/TinyRPG-BadgeFont.ttf') format('truetype');
+  font-display: block;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #root { height: 100%; }
+
+body {
+  background: var(--ink);
+  color: var(--text);
+  /* 12 is this font's design grid — any other size renders blurry. */
+  font: 24px/1 'TinyRPG', monospace;
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+  text-rendering: geometricPrecision;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+/* No sprite is ever smoothed, anywhere. */
+img, canvas { image-rendering: pixelated; }
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  /* square by default — any corner we round has to be drawn in pixels */
+  border-radius: 0;
+}
+
+.u-small { font-size: 12px; }
+.u-badge { font-family: 'TinyRPG Badge', monospace; }

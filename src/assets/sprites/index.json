@@ -1,0 +1,306 @@
+{
+ "food/apple": {
+  "h": 13,
+  "w": 12
+ },
+ "food/aubergine": {
+  "h": 9,
+  "w": 20
+ },
+ "food/bacon": {
+  "h": 10,
+  "w": 15
+ },
+ "food/banana": {
+  "h": 16,
+  "w": 16
+ },
+ "food/carrot": {
+  "h": 9,
+  "w": 25
+ },
+ "food/cherry": {
+  "h": 6,
+  "w": 7
+ },
+ "food/chicken": {
+  "h": 17,
+  "w": 26
+ },
+ "food/chilli": {
+  "h": 10,
+  "w": 12
+ },
+ "food/corn": {
+  "h": 17,
+  "w": 16
+ },
+ "food/egg": {
+  "h": 6,
+  "w": 8
+ },
+ "food/garlic": {
+  "h": 12,
+  "w": 10
+ },
+ "food/grapes": {
+  "h": 19,
+  "w": 14
+ },
+ "food/ham": {
+  "h": 15,
+  "w": 25
+ },
+ "food/lemon": {
+  "h": 8,
+  "w": 11
+ },
+ "food/lime": {
+  "h": 7,
+  "w": 9
+ },
+ "food/mushroom": {
+  "h": 17,
+  "w": 12
+ },
+ "food/orange": {
+  "h": 12,
+  "w": 10
+ },
+ "food/pea": {
+  "h": 8,
+  "w": 13
+ },
+ "food/pear": {
+  "h": 15,
+  "w": 9
+ },
+ "food/pepper": {
+  "h": 13,
+  "w": 9
+ },
+ "food/pumpkin": {
+  "h": 20,
+  "w": 25
+ },
+ "food/radish": {
+  "h": 16,
+  "w": 17
+ },
+ "food/roast-chicken": {
+  "h": 20,
+  "w": 25
+ },
+ "food/steak": {
+  "h": 20,
+  "w": 18
+ },
+ "generic/bag": {
+  "h": 16,
+  "w": 14
+ },
+ "generic/bottle": {
+  "h": 15,
+  "w": 14
+ },
+ "generic/box": {
+  "h": 13,
+  "w": 14
+ },
+ "generic/can": {
+  "h": 16,
+  "w": 9
+ },
+ "generic/carton": {
+  "h": 19,
+  "w": 11
+ },
+ "generic/cheese": {
+  "h": 14,
+  "w": 16
+ },
+ "generic/fungus": {
+  "h": 14,
+  "w": 14
+ },
+ "generic/herb": {
+  "h": 19,
+  "w": 14
+ },
+ "generic/jar": {
+  "h": 15,
+  "w": 14
+ },
+ "generic/meat": {
+  "h": 14,
+  "w": 12
+ },
+ "generic/produce": {
+  "h": 15,
+  "w": 12
+ },
+ "kit/bowl": {
+  "h": 9,
+  "w": 14
+ },
+ "kit/chef-knife": {
+  "h": 5,
+  "w": 28
+ },
+ "kit/cleaver": {
+  "h": 10,
+  "w": 27
+ },
+ "kit/fork": {
+  "h": 7,
+  "w": 11
+ },
+ "kit/knife": {
+  "h": 5,
+  "w": 13
+ },
+ "kit/knife-small": {
+  "h": 4,
+  "w": 21
+ },
+ "kit/ladle": {
+  "h": 20,
+  "w": 12
+ },
+ "kit/masher": {
+  "h": 8,
+  "w": 26
+ },
+ "kit/mixing-bowl": {
+  "h": 13,
+  "w": 16
+ },
+ "kit/pan": {
+  "h": 10,
+  "w": 25
+ },
+ "kit/plate": {
+  "h": 4,
+  "w": 21
+ },
+ "kit/plate-large": {
+  "h": 5,
+  "w": 26
+ },
+ "kit/plate-small": {
+  "h": 4,
+  "w": 11
+ },
+ "kit/plate-stack": {
+  "h": 15,
+  "w": 21
+ },
+ "kit/pot": {
+  "h": 19,
+  "w": 22
+ },
+ "kit/rolling-pin": {
+  "h": 6,
+  "w": 28
+ },
+ "kit/spatula": {
+  "h": 8,
+  "w": 23
+ },
+ "kit/spoon": {
+  "h": 7,
+  "w": 12
+ },
+ "room/counter": {
+  "h": 21,
+  "w": 25
+ },
+ "room/cupboard": {
+  "h": 28,
+  "w": 27
+ },
+ "room/floor": {
+  "h": 16,
+  "w": 16
+ },
+ "room/lamp": {
+  "h": 20,
+  "w": 15
+ },
+ "room/plant": {
+  "h": 29,
+  "w": 14
+ },
+ "room/shelf-stocked": {
+  "h": 34,
+  "w": 32
+ },
+ "room/skirting": {
+  "h": 2,
+  "w": 14
+ },
+ "room/wall-cabinet": {
+  "h": 18,
+  "w": 27
+ },
+ "room/wall-mint": {
+  "h": 23,
+  "w": 14
+ },
+ "room/wall-panel": {
+  "h": 23,
+  "w": 14
+ },
+ "room/wall-plaster": {
+  "h": 23,
+  "w": 14
+ },
+ "room/wall-terracotta": {
+  "h": 23,
+  "w": 14
+ },
+ "room/wall-trim": {
+  "h": 12,
+  "w": 14
+ },
+ "room/window": {
+  "h": 20,
+  "w": 25
+ },
+ "weather/leaf-1": {
+  "h": 5,
+  "w": 6
+ },
+ "weather/leaf-2": {
+  "h": 5,
+  "w": 6
+ },
+ "weather/leaf-3": {
+  "h": 6,
+  "w": 5
+ },
+ "weather/leaf-4": {
+  "h": 6,
+  "w": 5
+ },
+ "weather/rain-1": {
+  "h": 27,
+  "w": 1
+ },
+ "weather/rain-2": {
+  "h": 27,
+  "w": 1
+ },
+ "weather/snowflake": {
+  "h": 8,
+  "w": 8
+ },
+ "weather/splash-1": {
+  "h": 8,
+  "w": 8
+ },
+ "weather/splash-2": {
+  "h": 10,
+  "w": 10
+ }
+}
