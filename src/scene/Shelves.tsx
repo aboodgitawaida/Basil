@@ -25,18 +25,21 @@ type Props = {
   onPointerMove: (e: React.PointerEvent) => void
   onPointerUp: (e: React.PointerEvent) => void
   draggingId?: string
+  /** ids currently on the crafting board, so they aren't drawn twice */
+  onBoard?: readonly (string | null)[]
 }
 
 /** Items standing on shelves. Clipped to however much of the interior the door
  *  has actually revealed, so nothing floats over a closed door. */
-export function Shelves({ where, frame, items, onPointerDown, onPointerMove, onPointerUp, draggingId }: Props) {
+export function Shelves({ where, frame, items, onPointerDown, onPointerMove, onPointerUp, draggingId, onBoard }: Props) {
   const bay = PLACES[where]
   const reveal = bay.revealed[Math.min(frame, bay.revealed.length - 1)]
   if (reveal === Infinity) return null
 
   const pitch = Math.floor(bay.w / bay.slots)
   const visible = items.filter(i =>
-    where === 'fridge' ? i.location !== 'cupboard' : i.location === 'cupboard',
+    (where === 'fridge' ? i.location !== 'cupboard' : i.location === 'cupboard') &&
+    !onBoard?.includes(i.id),
   )
 
   return (

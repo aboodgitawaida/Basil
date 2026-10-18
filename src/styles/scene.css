@@ -262,3 +262,66 @@
 .parsed__icon img { display: block; image-rendering: pixelated; transform: scale(2); transform-origin: top left; }
 .parsed__text { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
 .parsed__text > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---- crafting board on the worktop ----
+   A board propped on the counter rather than a floating grid: without a
+   surface under them the ingredients read as hovering against the wall. */
+.craft {
+  position: absolute;
+  background: var(--wood-dark);
+  box-shadow:
+    inset  0  1px 0 var(--wood-light),
+    inset  1px 0 0 var(--wood-light),
+    inset -1px 0 0 var(--wood-darkest),
+    inset  0 -1px 0 var(--wood-darkest),
+    0 0 0 1px var(--ink);
+}
+.craft__cell {
+  position: absolute;
+  padding: 0;
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--umber);
+}
+.craft__cell:hover { background: rgb(255 248 224 / 0.08); }
+
+.dock__craft {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--umber);
+  border-top: 2px solid var(--wood-darkest);
+}
+.craftpanel { display: flex; gap: 10px; align-items: center; flex: 1 1 auto; min-width: 0; }
+.craftpanel__idle { flex: 1 1 auto; color: var(--text-dim); }
+.craftpanel__slot {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  background: var(--shadow);
+  box-shadow: inset 0 0 0 2px var(--wood-darkest);
+}
+.craftpanel__slot img { image-rendering: pixelated; transform: scale(1); }
+.craftpanel__text { flex: 1 1 auto; min-width: 0; }
+.craftpanel__text > p { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.craftpanel__dim { color: var(--text-dim); }
+.craftpanel__acts { display: flex; gap: 6px; flex: 0 0 auto; }
+
+/* ---- recipe book ---- */
+.sheet__panel--tall { max-height: 80vh; overflow: auto; }
+.sheet__head--between { justify-content: space-between; }
+.book { list-style: none; margin: 8px 0 14px; }
+.book__row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 2px solid var(--umber);
+}
+.book__row--short { opacity: 0.55; }
+.book__icon { display: block; flex: 0 0 auto; }
+.book__icon img { display: block; image-rendering: pixelated; }
+.book__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.book__text > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

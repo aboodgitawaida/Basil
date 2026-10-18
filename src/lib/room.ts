@@ -42,6 +42,10 @@ export const PANTRY_BAYS = {
   revealed: [Infinity, 42, 28, 18],
 } as const
 
+/** The crafting board, on the worktop to the right of where the cat sleeps.
+ *  Three cells of 17cm is what the counter has room for. */
+export const CRAFT = { x: 52, cell: 17, cols: 3, rows: 3, bottom: 208 - 90 } as const
+
 /** Surface clutter, kept to one group with space around it.
  *  [sprite, x] in centimetres; everything stands on the worktop. */
 export const PROPS: Array<[string, number]> = [
