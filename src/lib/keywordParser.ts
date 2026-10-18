@@ -34,12 +34,13 @@ export function keywordParse(text: string): Draft[] {
     const digits = lower.match(/\b(\d+)\b/)
     if (digits) count = parseInt(digits[1], 10)
     if (count === undefined) {
-      const word = Object.keys(NUMBER_WORDS).find(w => new RegExp(`\\b${w}\\b`).test(lower))
+      const said = (w: string) => new RegExp(`\\b${w}\\b`).test(lower)
+      // a real number word wins over an article: "a dozen eggs" is 12, not 1
+      const word = Object.keys(NUMBER_WORDS).find(w => w !== 'a' && w !== 'an' && said(w))
+      if (word) count = NUMBER_WORDS[word]
       // "a" and "an" are articles far more often than counts, so they only
       // count when the phrase also names something countable
-      if (word && !(['a', 'an'].includes(word) && !COUNTABLE.test(lower))) {
-        count = NUMBER_WORDS[word]
-      }
+      else if ((said('a') || said('an')) && COUNTABLE.test(lower)) count = 1
     }
 
     let amount: Amount | undefined

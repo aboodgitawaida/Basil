@@ -60,8 +60,26 @@ preview says which parser produced what you are looking at.
 3. Deploy. `/api/*` runs as one serverless function (`api/[...path].ts`) using
    the same handlers as local dev. Changing a variable needs a redeploy.
 
-Anyone with the URL can use the app and spend your key's quota. Turn on
-Deployment Protection in the Vercel project settings if that matters.
+Anyone with the URL can use the app and spend your key's quota, so the API
+caps each visitor at 20 model calls a minute and 300 a day. Change that with
+`BASIL_RATE_PER_MIN` / `BASIL_RATE_PER_DAY` (0 turns a limit off). The counts
+are kept in memory per serverless instance, so treat it as a speed bump, not a
+hard quota. For a hard lock, turn on Deployment Protection in the Vercel
+project settings.
+
+## Tests
+
+```sh
+npm test            # unit tests, once
+npm run test:watch  # re-run on save
+npm run typecheck   # client, server and tests
+```
+
+The tests cover the logic that can lose or misfile your food: storage and its
+recovery from bad saves, shelf placement, cooking, the keyword parser, sprite
+lookup, the model reply validators, and the API routes including the rate
+limit. They never call a real model. GitHub Actions runs typecheck, tests and
+the build on every push and pull request.
 
 ## Build status
 
