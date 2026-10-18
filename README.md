@@ -48,6 +48,21 @@ GROQ_API_KEY=...
 model and an unparseable reply all land on the same keyword matcher, and the
 preview says which parser produced what you are looking at.
 
+## Deploying to Vercel
+
+1. Import the repo at vercel.com/new and pick this branch (or merge it first).
+   Vercel detects Vite; the defaults are right.
+2. Before the first deploy, open **Environment Variables** and add the same
+   lines you would put in `.env`:
+   - `BASIL_PROVIDER` = `groq` (or `gemini`)
+   - `GROQ_API_KEY` = your key (or `GEMINI_API_KEY`)
+   - optional: `BASIL_MODEL`
+3. Deploy. `/api/*` runs as one serverless function (`api/[...path].ts`) using
+   the same handlers as local dev. Changing a variable needs a redeploy.
+
+Anyone with the URL can use the app and spend your key's quota. Turn on
+Deployment Protection in the Vercel project settings if that matters.
+
 ## Build status
 
 - [x] **1 — Scene + assets.** Room, palette, font, sprite manifest, fridge and

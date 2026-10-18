@@ -1,9 +1,9 @@
-import { activeProvider, apiKey } from './config'
-import { COMPLETIONS, NoKeyError } from './providers'
+import { activeProvider, apiKey } from './config.js'
+import { COMPLETIONS, NoKeyError } from './providers.js'
 import {
   CRAFT_SCHEMA, PARSE_SCHEMA, SUGGEST_SCHEMA,
   looseJson, validateCraft, validateParse, validateSuggest,
-} from './schemas'
+} from './schemas.js'
 
 const VOICE = `You write for Basil, a pixel-art kitchen app. Calm and dry.
 Never apologise, never use exclamation marks, never sound chirpy.`
