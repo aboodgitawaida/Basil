@@ -1,31 +1,19 @@
 import { WINDOW } from '../lib/room'
 import { Sprite } from './Sprite'
 
-/** A proper window: frame, mullions, a view out, a sill and curtains.
- *  Everything but the clouds is drawn, so it sizes to whatever we want. */
+/** The frame is a sprite with the pane knocked out, so the view behind it can
+ *  change with the weather and the time of day later. */
 export function Window() {
-  const { x, y, w, h } = WINDOW
+  const { x, y, w, paneH } = WINDOW
   return (
     <>
-      <i className="win__rod" style={{ left: x - 6, top: y - 4, width: w + 12 }} />
-
-      <div className="win" style={{ left: x, top: y, width: w, height: h }}>
-        <div className="win__pane">
-          <Sprite k="sky/cloud-2" x={4} y={6} />
-          <Sprite k="sky/cloud-5" x={30} y={2} />
-          <i className="win__hill" />
-          <i className="win__field" />
-        </div>
-        <i className="win__mullion-v" />
-        <i className="win__mullion-h" />
+      <div className="win__view" style={{ left: x + 5, top: y + 5, width: w - 10, height: paneH - 14 }}>
+        <Sprite k="sky/cloud-2" x={3} y={8} />
+        <Sprite k="sky/cloud-4" x={30} y={2} />
+        <i className="win__far" />
+        <i className="win__near" />
       </div>
-
-      <i className="win__sill" style={{ left: x - 4, top: y + h, width: w + 8 }} />
-      <i className="win__curtain" style={{ left: x - 6, top: y - 2, height: h - 4 }} />
-      <i
-        className="win__curtain win__curtain--r"
-        style={{ left: x + w - 7, top: y - 2, height: h - 4 }}
-      />
+      <Sprite k="room/window" x={x} y={y} />
     </>
   )
 }
