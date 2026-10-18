@@ -3,7 +3,8 @@
   place-items: center;
   width: 100%;
   height: 100%;
-  background: var(--ink);
+  overflow: hidden;
+  background: var(--shadow);
 }
 
 .stage__scaler {
@@ -16,6 +17,17 @@
   position: relative;
   overflow: hidden;
   background: var(--room-air);
+}
+
+/* caps the top of the wall so the room has a ceiling rather than running on */
+.room__cornice {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 7px;
+  z-index: 2;
+  background: url('../assets/sprites/room/cornice.png') repeat-x;
 }
 
 .room__plaster {
@@ -60,77 +72,127 @@
   position: absolute;
   left: 0;
   right: 0;
-  background: url('../assets/sprites/room/floor.png') repeat;
+  background: url('../assets/sprites/room/floor-tile.png') repeat;
 }
 
-/* ---- fridge: drawn in code, because no pack has one ---- */
-.fridge { position: absolute; display: block; }
-
-.fridge__body {
+/* tiled splashback behind the counter */
+.room__splash {
   position: absolute;
-  inset: 0;
-  background: var(--fridge-body);
-  box-shadow:
-    inset  1px  0 0 var(--mist),
-    inset -1px  0 0 var(--fridge-edge),
-    inset  0 -1px 0 var(--fridge-edge);
+  background: url('../assets/sprites/room/tiles.png') repeat;
 }
 
-.fridge__cell {
+/* a button that is nothing but a hit area over sprites */
+.hit {
   position: absolute;
-  left: 2px;
-  right: 2px;
-  background: var(--fridge-in);
-  box-shadow:
-    inset 0  1px 0 var(--ink),
-    inset 2px 0 0 var(--slate);   /* light falls off towards the hinge */
+  display: block;
+  padding: 0;
+  background: none;
 }
 
-.fridge__shelf {
-  position: absolute;
-  left: 1px;
-  right: 1px;
-  height: 1px;
-  background: var(--steel);
-  box-shadow: 0 1px 0 var(--ink);
-}
-
-.fridge__door {
-  position: absolute;
-  left: 0;
-  background: var(--fridge-body);
-  /* top highlight, hinge-side highlight, seam and shut line in whole pixels */
-  box-shadow:
-    inset  1px  0 0 var(--paper),
-    inset  0  1px 0 var(--paper),
-    inset -1px  0 0 var(--fridge-edge),
-    inset  0 -1px 0 var(--wood-deep);
-}
-
-.fridge__handle {
-  position: absolute;
-  right: 3px;
-  width: 2px;
-  height: 9px;
-  background: var(--wood-deep);
-  box-shadow: 1px 0 0 var(--paper);
-}
-
-/* the lit edge of a door that is standing open */
-.fridge__edge {
+.room__cord {
   position: absolute;
   top: 0;
   width: 1px;
-  background: var(--cream-light);
+  background: var(--wood-deep);
 }
 
-.fridge__feet {
+.room__rail {
   position: absolute;
-  left: 1px;
-  right: 1px;
-  height: 2px;
-  background: var(--slate);
+  height: 1px;
+  background: var(--steel);
+  box-shadow: 0 1px 0 var(--wood-deep);
 }
+
+/* ---- window ---- */
+.win {
+  position: absolute;
+  background: var(--wood);
+  box-shadow:
+    inset  1px  1px 0 var(--wood-light),
+    inset -1px -1px 0 var(--wood-deep);
+}
+
+.win__pane {
+  position: absolute;
+  inset: 3px;
+  overflow: hidden;
+  background: var(--sky);
+  box-shadow: inset 0 0 0 1px var(--wood-deep);
+}
+
+.win__hill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 7px;
+  height: 6px;
+  background: var(--green);
+}
+
+.win__field {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 7px;
+  background: var(--green-dark);
+}
+
+.win__mullion-v {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--wood);
+  box-shadow: inset 1px 0 0 var(--wood-light);
+}
+
+.win__mullion-h {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  background: var(--wood);
+  box-shadow: inset 0 1px 0 var(--wood-light);
+}
+
+.win__sill {
+  position: absolute;
+  height: 4px;
+  background: var(--wood-light);
+  box-shadow:
+    inset 0  1px 0 var(--cream-light),
+    inset 0 -1px 0 var(--wood-deep);
+}
+
+.win__rod {
+  position: absolute;
+  height: 2px;
+  background: var(--wood-deep);
+  box-shadow: inset 0 1px 0 var(--wood-mid);
+}
+
+/* hard colour stops only — a smooth gradient would anti-alias */
+.win__curtain {
+  position: absolute;
+  width: 13px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--curtain) 0 2px,
+    var(--curtain-fold) 2px 3px,
+    var(--curtain) 3px 5px,
+    var(--wood) 5px 6px
+  );
+  box-shadow:
+    inset 0  1px 0 var(--cream-light),
+    inset 0 -1px 0 var(--wood-deep);
+}
+
+.win__curtain--r { transform: scaleX(-1); }
 
 /* ---- cupboard: pack sprite, doors cut apart and slid ---- */
 .cupboard { position: absolute; display: block; }

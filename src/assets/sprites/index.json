@@ -95,6 +95,42 @@
   "h": 20,
   "w": 18
  },
+ "fridge/carcass": {
+  "h": 116,
+  "w": 44
+ },
+ "fridge/door-0": {
+  "h": 80,
+  "w": 44
+ },
+ "fridge/door-1": {
+  "h": 80,
+  "w": 32
+ },
+ "fridge/door-2": {
+  "h": 80,
+  "w": 20
+ },
+ "fridge/door-3": {
+  "h": 80,
+  "w": 9
+ },
+ "fridge/freezer-0": {
+  "h": 36,
+  "w": 44
+ },
+ "fridge/freezer-1": {
+  "h": 36,
+  "w": 32
+ },
+ "fridge/freezer-2": {
+  "h": 36,
+  "w": 20
+ },
+ "fridge/freezer-3": {
+  "h": 36,
+  "w": 9
+ },
  "generic/bag": {
   "h": 16,
   "w": 14
@@ -139,9 +175,17 @@
   "h": 15,
   "w": 12
  },
+ "kit/board": {
+  "h": 20,
+  "w": 13
+ },
  "kit/bowl": {
   "h": 9,
   "w": 14
+ },
+ "kit/chair": {
+  "h": 24,
+  "w": 15
  },
  "kit/chef-knife": {
   "h": 5,
@@ -211,6 +255,22 @@
   "h": 7,
   "w": 12
  },
+ "kit/stool": {
+  "h": 12,
+  "w": 13
+ },
+ "kit/table": {
+  "h": 13,
+  "w": 28
+ },
+ "room/clock": {
+  "h": 11,
+  "w": 11
+ },
+ "room/cornice": {
+  "h": 7,
+  "w": 16
+ },
  "room/counter": {
   "h": 21,
   "w": 25
@@ -219,17 +279,69 @@
   "h": 28,
   "w": 27
  },
- "room/floor": {
+ "room/floor-brick": {
   "h": 16,
   "w": 16
+ },
+ "room/floor-herring": {
+  "h": 16,
+  "w": 16
+ },
+ "room/floor-mint": {
+  "h": 16,
+  "w": 16
+ },
+ "room/floor-stone": {
+  "h": 16,
+  "w": 16
+ },
+ "room/floor-tile": {
+  "h": 16,
+  "w": 16
+ },
+ "room/herbs": {
+  "h": 18,
+  "w": 11
  },
  "room/lamp": {
   "h": 20,
   "w": 15
  },
+ "room/mat": {
+  "h": 9,
+  "w": 58
+ },
+ "room/pendant": {
+  "h": 9,
+  "w": 15
+ },
+ "room/picture-1": {
+  "h": 17,
+  "w": 16
+ },
+ "room/picture-2": {
+  "h": 17,
+  "w": 16
+ },
+ "room/picture-wide": {
+  "h": 14,
+  "w": 21
+ },
  "room/plant": {
   "h": 29,
   "w": 14
+ },
+ "room/plant-small": {
+  "h": 19,
+  "w": 21
+ },
+ "room/rug": {
+  "h": 40,
+  "w": 60
+ },
+ "room/shelf": {
+  "h": 7,
+  "w": 52
  },
  "room/shelf-stocked": {
   "h": 34,
@@ -238,6 +350,14 @@
  "room/skirting": {
   "h": 2,
   "w": 14
+ },
+ "room/tiles": {
+  "h": 16,
+  "w": 16
+ },
+ "room/towel": {
+  "h": 16,
+  "w": 9
  },
  "room/wall-cabinet": {
   "h": 18,
@@ -266,6 +386,38 @@
  "room/window": {
   "h": 20,
   "w": 25
+ },
+ "sky/cloud-1": {
+  "h": 20,
+  "w": 25
+ },
+ "sky/cloud-2": {
+  "h": 15,
+  "w": 24
+ },
+ "sky/cloud-3": {
+  "h": 3,
+  "w": 6
+ },
+ "sky/cloud-4": {
+  "h": 2,
+  "w": 1
+ },
+ "sky/cloud-5": {
+  "h": 10,
+  "w": 17
+ },
+ "sky/cloud-6": {
+  "h": 4,
+  "w": 8
+ },
+ "sky/cloud-7": {
+  "h": 13,
+  "w": 19
+ },
+ "sky/cloud-8": {
+  "h": 13,
+  "w": 16
  },
  "weather/leaf-1": {
   "h": 5,
