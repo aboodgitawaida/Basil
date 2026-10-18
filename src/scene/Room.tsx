@@ -11,6 +11,7 @@ import { useSteps } from '../lib/useSteps'
 import type { Item } from '../lib/schema'
 import type { Sky } from '../lib/weather'
 import { Basil } from './Basil'
+import type { Spoken } from '../lib/basilSays'
 import type { Mood } from './Bubble'
 import { Bubble } from './Bubble'
 
@@ -35,7 +36,10 @@ type Props = {
   skyColour: string
   lampOn: boolean
   onLamp: () => void
-  onPet: () => void
+  onAskBasil: () => void
+  onHushBasil: () => void
+  basilSpeech: Spoken | null
+  basilThinking: boolean
   say: Mood | null
   children?: React.ReactNode
 }
@@ -51,7 +55,7 @@ function Shadow({ x, w, y, soft = false }: { x: number; w: number; y: number; so
 }
 
 export function Room({
-  fridgeOpen, cupboardOpen, onFridge, onCupboard, items, itemHandlers, draggingId, crafting, onBoard, night, sky, skyColour, lampOn, onLamp, onPet, say, children,
+  fridgeOpen, cupboardOpen, onFridge, onCupboard, items, itemHandlers, draggingId, crafting, onBoard, night, sky, skyColour, lampOn, onLamp, onAskBasil, onHushBasil, basilSpeech, basilThinking, say, children,
 }: Props) {
   const cat = spriteSize('cat/sleep-0')
   const fridgeFrame = useSteps(fridgeOpen, FRIDGE_FRAMES, 55)
@@ -96,7 +100,7 @@ export function Room({
       />
 
       <Shadow x={CAT.x + 4} w={cat.w - 10} y={COUNTER_TOP} soft />
-      <Basil disturbed={fridgeOpen} onPet={onPet} mood={null} />
+      <Basil disturbed={fridgeOpen} onAsk={onAskBasil} onHush={onHushBasil} speech={basilSpeech} thinking={basilThinking} />
 
       {!crafting && PROPS.map(([k, x]) => (
         <span key={k}>

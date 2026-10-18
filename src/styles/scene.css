@@ -347,6 +347,36 @@
   100% { opacity: 0; transform: translateY(-8px); }
 }
 
+.basilsay {
+  position: absolute;
+  z-index: 6;
+  width: 168px;
+  box-sizing: border-box;
+  padding: 5px 7px;
+  background: var(--cream-light);
+  color: var(--ink);
+  border: 2px solid var(--ink);
+  font: 12px/1.25 'TinyRPG', monospace;
+  cursor: pointer;
+}
+.basilsay p { margin: 0; }
+.basilsay p + p { margin-top: 3px; }
+.basilsay__title { color: var(--red-dark); }
+.basilsay__dim { color: var(--wood-dark); }
+.basilsay__note { color: var(--red-dark); }
+/* tail, pointing down at his head */
+.basilsay::after {
+  content: '';
+  position: absolute;
+  left: 18px;
+  bottom: -8px;
+  width: 6px;
+  height: 6px;
+  background: var(--cream-light);
+  border-right: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+}
+
 .bubble {
   position: absolute;
   display: block;
