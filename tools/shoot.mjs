@@ -2,9 +2,10 @@ import { chromium } from 'playwright'
 const OUT = process.argv[2]
 const shots = [
   { name: 'phone-closed',  w: 390, h: 844, acts: [] },
-  { name: 'phone-fridge',  w: 390, h: 844, acts: ['.fridge'] },
-  { name: 'phone-both',    w: 390, h: 844, acts: ['.fridge', '.cupboard'] },
-  { name: 'desktop',       w: 1280, h: 900, acts: ['.cupboard'] },
+  { name: 'phone-fridge',  w: 390, h: 844, acts: ['[aria-label$="fridge"]'] },
+  { name: 'phone-both',    w: 390, h: 844, acts: ['[aria-label$="fridge"]', '[aria-label$="cupboard"]'] },
+  { name: 'desktop',       w: 1280, h: 900, acts: [] },
+  { name: 'desktop-open',  w: 1280, h: 900, acts: ['[aria-label$="fridge"]', '[aria-label$="cupboard"]'] },
 ]
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' })
 for (const s of shots) {

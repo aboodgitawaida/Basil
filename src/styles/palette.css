@@ -36,6 +36,7 @@
   --green:        #42a128;
   --green-dark:   #317a1b;
   --mist:         #d8d0e0;
+  --sky:          #d3f6ee;
   --steel:        #a79796;
   --pink:         #bf5e92;
 
@@ -45,9 +46,11 @@
   --fridge-body:  var(--mist);
   --fridge-edge:  var(--steel);
   --fridge-in:    var(--slate-light);
-  --cupboard-in:  var(--wood-deep);
+  --cupboard-in:  var(--wood-dark);
   --text:         var(--paper);
   --text-dim:     var(--cream-dark);
   --panel:        var(--wood-deep);
   --panel-edge:   var(--wood-mid);
+  --curtain:      var(--rust);
+  --curtain-fold: var(--red-dark);
 }

@@ -34,7 +34,7 @@ the app depends on it; without a key everything else still works.
 These are enforced, not aspirational:
 
 - **One whole-number scale.** The room is authored in art pixels
-  (192 × 200, see `src/lib/room.ts`) and the whole scene is scaled by a single
+  (192 × 240, see `src/lib/room.ts`) and the whole scene is scaled by a single
   integer to fit the viewport, never below 2×. Nothing is scaled individually,
   so every pack renders at the same apparent pixel size.
 - **One palette.** `src/styles/palette.css`, sampled from the packs themselves.
