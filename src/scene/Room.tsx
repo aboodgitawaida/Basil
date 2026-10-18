@@ -19,7 +19,7 @@ function Shadow({ x, w, y, soft = false }: { x: number; w: number; y: number; so
   return (
     <i
       className={soft ? 'contact contact--soft' : 'contact'}
-      style={{ left: x + 2, top: y - 2, width: w }}
+      style={{ left: x + 2, top: y, width: w }}
     />
   )
 }
@@ -53,8 +53,8 @@ export function Room({ fridgeOpen, cupboardOpen, onFridge, onCupboard }: Props) 
         style={{ left: COUNTER.x, top: COUNTER_TOP, width: COUNTER.w * COUNTER.units }}
       />
 
-      <Shadow x={CAT.x} w={cat.w - 4} y={COUNTER_TOP} soft />
-      <Sprite k="cat/sleep-0" x={CAT.x} bottom={COUNTER_TOP} />
+      <Shadow x={CAT.x + 4} w={cat.w - 10} y={COUNTER_TOP} soft />
+      <Sprite k="cat/sleep-0" x={CAT.x} bottom={COUNTER_TOP} overhang={CAT.overhang} />
 
       {PROPS.map(([k, x]) => (
         <span key={k}>
