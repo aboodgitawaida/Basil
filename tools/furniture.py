@@ -187,6 +187,18 @@ def pendant():
     return img
 
 
+def light_switch(on):
+    img, d = new(7, 11)                        # 14 x 22 cm plate
+    box(d, 0, 0, 6, 10, rgba("cream"), rgba("highlight"), rgba("wood-dark"))
+    if on:
+        d.rectangle([2, 2, 4, 5], fill=rgba("gold"))
+        d.rectangle([2, 6, 4, 8], fill=rgba("wood-dark"))
+    else:
+        d.rectangle([2, 2, 4, 4], fill=rgba("wood-dark"))
+        d.rectangle([2, 5, 4, 8], fill=rgba("tan"))
+    return img
+
+
 def tile(kind):
     img, d = new(16, 16)
     if kind == "floor":
@@ -204,6 +216,8 @@ def tile(kind):
 
 
 AUTHORED = {
+    "room/switch-on": lambda: light_switch(True),
+    "room/switch-off": lambda: light_switch(False),
     "room/pantry-carcass": pantry_carcass,
     "room/counter": counter_unit,
     "room/counter-drawers": counter_drawers,

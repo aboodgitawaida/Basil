@@ -26,12 +26,15 @@ await p.reload({ waitUntil: 'networkidle' })
 await p.click('[aria-label$="fridge"]'); await p.waitForTimeout(600)
 await p.click('[aria-label$="cupboard"]'); await p.waitForTimeout(600)
 
+// the board only exists while a drag is in flight, so the slot is located
+// after the drag has started
 const drag = async (label, slot) => {
   const a = await p.locator(`[aria-label="${label}"]`).first().boundingBox()
-  const c = await p.locator(`[data-craft-slot="${slot}"]`).boundingBox()
   await p.mouse.move(a.x + a.width / 2, a.y + a.height / 2)
   await p.mouse.down()
-  await p.mouse.move(c.x + c.width / 2, c.y + c.height / 2, { steps: 10 })
+  await p.mouse.move(a.x + a.width / 2 + 20, a.y + a.height / 2 - 20, { steps: 4 })
+  const c = await p.locator(`[data-craft-slot="${slot}"]`).boundingBox()
+  await p.mouse.move(c.x + c.width / 2, c.y + c.height / 2, { steps: 8 })
   await p.mouse.up()
   await p.waitForTimeout(250)
 }

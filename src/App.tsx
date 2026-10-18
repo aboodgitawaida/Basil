@@ -15,6 +15,11 @@ import { judgeCraft, suggestMeals, type Meal, type Verdict } from './lib/ai'
 import { CraftBoard } from './scene/CraftBoard'
 import { CraftPanel } from './ui/CraftPanel'
 import { RecipeBook } from './ui/RecipeBook'
+import { Credits } from './ui/Credits'
+import { lighting, nightLevel } from './lib/daylight'
+import { fetchSky, type Sky } from './lib/weather'
+import { sound } from './lib/sound'
+import type { Mood } from './scene/Bubble'
 import { spriteSize, spriteUrl } from './lib/sprites'
 import type { Item, Location } from './lib/schema'
 
@@ -33,8 +38,26 @@ export function App() {
   const [suggestions, setSuggestions] = useState<Meal[]>([])
   const [suggestLine, setSuggestLine] = useState<string | undefined>()
   const [suggesting, setSuggesting] = useState(false)
+  const [clock, setClock] = useState(() => nightLevel())
+  const [sky, setSky] = useState<Sky>('clear')
+  const [say, setSay] = useState<Mood | null>(null)
+  const [creditsOpen, setCreditsOpen] = useState(false)
   const debug = new URLSearchParams(window.location.search).has('debug')
-  const { state, loaded, apply, undo, undoable, dismissUndo } = useStore()
+  const { state, loaded, apply, applyQuiet, undo, undoable, dismissUndo } = useStore()
+
+  // the room's light follows the real clock unless the switch says otherwise
+  useEffect(() => {
+    const id = window.setInterval(() => setClock(nightLevel()), 60_000)
+    return () => window.clearInterval(id)
+  }, [])
+  useEffect(() => { void fetchSky(state.settings.lat, state.settings.lon).then(setSky) },
+    [state.settings.lat, state.settings.lon])
+  useEffect(() => { sound.setEnabled(state.settings.sound) }, [state.settings.sound])
+
+  const override = state.settings.lightOverride
+  const night = override === null ? clock : override
+  const { sky: skyColour } = lighting(night)
+  const lampOn = night > 0.15 ? override !== 1 : override === 1
 
   useEffect(() => {
     const onResize = () => setScale(fitScale(window.innerWidth, window.innerHeight))
@@ -103,9 +126,12 @@ export function App() {
 
   const doCook = useCallback(() => {
     if (!verdict?.ok || !used.length) return
+    sound.play('cook')
     apply(`Cooked ${verdict.name}.`, cook(verdict.name, used, verdict.steps, verdict.minutes))
     setBoard(emptyBoard())
     setVerdict(null)
+    setSay('ok')
+    window.setTimeout(() => setSay(null), 2600)
   }, [verdict, used, apply])
 
   const openBook = useCallback(() => {
@@ -115,6 +141,8 @@ export function App() {
       setSuggestions(r.meals)
       setSuggestLine(r.line)
       setSuggesting(false)
+      setSay('idea')
+      window.setTimeout(() => setSay(null), 3200)
     })
   }, [state.items, state.settings.dietary])
 
@@ -127,19 +155,36 @@ export function App() {
           <Room
             fridgeOpen={fridgeOpen}
             cupboardOpen={cupboardOpen}
-            onFridge={() => setFridgeOpen(o => !o)}
-            onCupboard={() => setCupboardOpen(o => !o)}
+            onFridge={() => setFridgeOpen(o => { sound.play(o ? 'fridgeClose' : 'fridgeOpen'); return !o })}
+            onCupboard={() => setCupboardOpen(o => { sound.play('cupboard'); return !o })}
             items={state.items}
             itemHandlers={handlers}
             draggingId={drag?.item.id}
             crafting={used.length > 0}
             onBoard={board}
+            night={night}
+            sky={sky}
+            skyColour={skyColour}
+            lampOn={lampOn}
+            onLamp={() => {
+              sound.play('toggle')
+              applyQuiet(s => ({
+                ...s,
+                settings: { ...s.settings, lightOverride: lampOn ? 1 : 0 },
+              }))
+            }}
+            onPet={() => sound.play('place', 0.35)}
+            say={say}
           >
-            <CraftBoard
-              board={board}
-              items={state.items}
-              onClear={n => setBoard(b => b.map((id, i) => (i === n ? null : id)))}
-            />
+            {/* the board only exists while it is wanted: either something is
+                on it, or something is being dragged and needs a target */}
+            {(used.length > 0 || drag) && (
+              <CraftBoard
+                board={board}
+                items={state.items}
+                onClear={n => setBoard(b => b.map((id, i) => (i === n ? null : id)))}
+              />
+            )}
           </Room>
         </div>
       </div>
@@ -168,6 +213,11 @@ export function App() {
             onClear={() => setBoard(emptyBoard())}
           />
           <button className="chip chip--quiet" onClick={openBook}>book</button>
+          <button
+            className="chip chip--quiet"
+            onClick={() => applyQuiet(s => ({ ...s, settings: { ...s.settings, sound: !s.settings.sound } }))}
+            aria-label={state.settings.sound ? 'Mute' : 'Unmute'}
+          >{state.settings.sound ? '♪ on' : '♪ off'}</button>
         </div>
         <AddBar
           onSubmit={t => void add(t)}
@@ -210,6 +260,9 @@ export function App() {
           onClose={() => setBookOpen(false)}
         />
       )}
+
+      {creditsOpen && <Credits onClose={() => setCreditsOpen(false)} />}
+      <button className="credits__link u-small" onClick={() => setCreditsOpen(true)}>credits</button>
 
       {debug && <DebugManifest />}
     </div>

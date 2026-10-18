@@ -10,24 +10,59 @@ Personal app — no accounts, no backend. Everything lives in `localStorage`.
 
 ```sh
 npm install
+cp .env.example .env     # then put your key in it
 npm run dev
 ```
 
 Open http://localhost:5173. Add `?debug` to the URL to see the sprite manifest
 resolve a list of typed food names — useful when adding new art.
 
-The AI features arrive in phase 3 and will need an Anthropic API key in `.env`,
-routed through a local proxy so the key never reaches the browser. Nothing in
-the app depends on it; without a key everything else still works.
+For a production run, `npm run build` then `npm start`, which serves `dist/`
+and the same API routes from Express on :8787.
+
+### The model key
+
+One line in `.env`:
+
+```
+GEMINI_API_KEY=...
+```
+
+That is the whole setup. The key is read in `server/config.ts`, used only in
+`server/providers.ts`, and never reaches the browser — the client talks to
+`/api/parse`, `/api/suggest` and `/api/craft` on its own origin, and the build
+output contains no mention of it.
+
+**To switch provider**, edit `server/config.ts` — it is the only file that
+knows about providers. Groq is already wired up:
+
+```
+BASIL_PROVIDER=groq
+GROQ_API_KEY=...
+```
+
+`BASIL_MODEL` pins a model name without touching code, and
+`BASIL_GEMINI_URL` / `BASIL_GROQ_URL` point the proxy at a gateway or a stub.
+
+**Without a key, everything still works.** A missing key, an unreachable
+model and an unparseable reply all land on the same keyword matcher, and the
+preview says which parser produced what you are looking at.
 
 ## Build status
 
 - [x] **1 — Scene + assets.** Room, palette, font, sprite manifest, fridge and
       cupboard open and close.
-- [ ] 2 — Inventory, no AI
-- [ ] 3 — AI parsing
-- [ ] 4 — Crafting + recipe book
-- [ ] 5 — Atmosphere (Basil, day/night, weather, sound)
+- [x] **2 — Inventory.** Items on real shelves, localStorage behind a
+      Repository interface, drag between fridge and cupboard, undo on
+      everything.
+- [x] **3 — Model parsing.** Gemini (or Groq) behind a server-side proxy,
+      strict JSON validation, keyword fallback, preview before anything saves.
+- [x] **4 — Crafting.** A 3x3 board on the worktop, live output preview,
+      cooking spends ingredients, recipe book of what you have made and what
+      you could.
+- [x] **5 — Atmosphere.** Basil, day/night lighting on a real clock with a
+      wall switch, live weather in the window, sound (muted by default),
+      emotion bubbles, credits.
 
 ## The art rules
 

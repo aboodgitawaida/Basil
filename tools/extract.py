@@ -32,6 +32,7 @@ CAT = os.path.join(A, "sprites/sleeping-cat-free")
 FOOD2 = os.path.join(A, "Pixel Art - Food Pack 2")
 ICONS = os.path.join(A, "Pixel Art - Food Icons - FREE Version/Transparent PNG Files")
 FRIDGE_PACK = os.path.join(A, "Pixel Art Fridge Pack/Fridges - Green/Fridge 5 - Empty_sprites")
+EMOJI = os.path.join(A, "ui/emoji-pack-i")
 
 # World centimetres per source pixel for the packs that are drawn at roughly
 # half the world scale. Everything is emitted already upscaled, so the scene
@@ -244,6 +245,18 @@ cat = Image.open(f"{CAT}/sleepingcat1.png").convert("RGBA")
 for i in range(6):
     save(cat.crop((i * 64, 0, (i + 1) * 64, 64)), f"cat/sleep-{i}",
          chunky=True, scale=UNIT)
+
+# Emotion bubbles. Kept at their own scale: a speech bubble is a convention
+# drawn over the scene, not an object sitting in it, so it belongs in the same
+# register as the text rather than on the world's 2px grid.
+# Each sheet is a 5x4 grid of 32px frames; they are saved whole and stepped
+# through with background-position.
+for src, name in (("Sleepy", "bubble/sleepy"), ("Love", "bubble/love"),
+                  ("Question", "bubble/question"), ("Idea", "bubble/idea"),
+                  ("Eager", "bubble/eager"), ("Ok", "bubble/ok")):
+    path = f"{EMOJI}/20250405emoticons-Sheet{src}.png"
+    if os.path.exists(path):
+        save(Image.open(path).convert("RGBA"), name, trim=False)
 
 # --------------------------------------------- authored containers + sky ---
 def carton(d):
