@@ -7,14 +7,14 @@ export type Category =
 /** Last-resort sprite per category. Every category must map to something that
  *  exists, which is what keeps a blank square off the shelf. */
 export const CATEGORY_FALLBACK: Record<Category, string> = {
-  dairy:     'generic/carton',
-  produce:   'generic/produce',
-  meat:      'generic/meat',
+  dairy:     'food/milk',
+  produce:   'food/apple',
+  meat:      'food/steak',
   grain:     'generic/bag',
-  condiment: 'generic/jar',
-  drink:     'generic/bottle',
+  condiment: 'food/ketchup',
+  drink:     'food/water',
   frozen:    'generic/box',
-  tinned:    'generic/can',
+  tinned:    'food/can-1',
   baking:    'generic/bag',
   snack:     'generic/box',
   other:     'generic/box',
@@ -23,37 +23,39 @@ export const CATEGORY_FALLBACK: Record<Category, string> = {
 /** Known foods that have a sprite of their own. The key is the normalised
  *  name; see `normalise`. */
 const DIRECT: Record<string, string> = {
-  // fruit
-  apple: 'food/apple', banana: 'food/banana', grape: 'food/grapes',
-  orange: 'food/orange', lime: 'food/lime', lemon: 'food/lemon',
-  pear: 'food/pear', cherry: 'food/cherry',
-  // vegetables
-  corn: 'food/corn', sweetcorn: 'food/corn', garlic: 'food/garlic',
-  pumpkin: 'food/pumpkin', squash: 'food/pumpkin', carrot: 'food/carrot',
-  radish: 'food/radish', beetroot: 'food/radish', pepper: 'food/pepper',
-  'bell pepper': 'food/pepper', capsicum: 'food/pepper',
-  mushroom: 'food/mushroom', chilli: 'food/chilli', chili: 'food/chilli',
-  aubergine: 'food/aubergine', eggplant: 'food/aubergine',
-  pea: 'food/pea', 'green bean': 'food/pea',
-  // meat + protein
-  chicken: 'food/chicken', 'roast chicken': 'food/roast-chicken',
-  turkey: 'food/chicken', bacon: 'food/bacon', steak: 'food/steak',
-  beef: 'food/steak', ham: 'food/ham', pork: 'food/ham', egg: 'food/egg',
-  // store cupboard
-  cheese: 'generic/cheese', cheddar: 'generic/cheese', parmesan: 'generic/cheese',
-  herb: 'generic/herb', basil: 'generic/herb', parsley: 'generic/herb',
-  coriander: 'generic/herb', mint: 'generic/herb', thyme: 'generic/herb',
-  milk: 'generic/carton', cream: 'generic/carton', juice: 'generic/carton',
-  yoghurt: 'generic/jar', yogurt: 'generic/jar', jam: 'generic/jar',
-  honey: 'generic/jar', 'peanut butter': 'generic/jar', mustard: 'generic/jar',
-  mayonnaise: 'generic/jar', pickle: 'generic/jar',
-  oil: 'generic/bottle', vinegar: 'generic/bottle', wine: 'generic/bottle',
-  beer: 'generic/bottle', water: 'generic/bottle', cordial: 'generic/bottle',
-  rice: 'generic/bag', pasta: 'generic/bag', flour: 'generic/bag',
-  sugar: 'generic/bag', bread: 'generic/bag', oat: 'generic/bag',
-  lentil: 'generic/bag', potato: 'generic/bag', onion: 'food/garlic',
-  bean: 'generic/can', tomato: 'generic/can', soup: 'generic/can',
-  tuna: 'generic/can', chickpea: 'generic/can',
+  // dairy and cartons
+  milk: 'food/milk', cream: 'food/milk', buttermilk: 'food/milk',
+  'oat milk': 'food/tetrapak', 'soy milk': 'food/tetrapak', custard: 'food/tetrapak',
+  'orange juice': 'food/juice-carton', juice: 'food/juice-carton',
+  smoothie: 'food/juice', yoghurt: 'generic/jar', yogurt: 'generic/jar',
+  cheese: 'food/cheese', cheddar: 'food/cheese', parmesan: 'food/cheese-wedge',
+  brie: 'food/cheese-wedge', feta: 'food/cheese-wedge', gouda: 'food/cheese',
+  egg: 'food/egg', butter: 'food/cheese-wedge',
+  // condiments and bottles
+  ketchup: 'food/ketchup', mustard: 'food/mustard',
+  'hot sauce': 'food/hot-sauce', sriracha: 'food/hot-sauce', tabasco: 'food/hot-sauce',
+  oil: 'food/oil', 'olive oil': 'food/oil', vinegar: 'food/oil',
+  wine: 'food/wine', beer: 'food/can-2', cider: 'food/can-3',
+  water: 'food/water', squash: 'food/juice', cordial: 'food/juice',
+  jam: 'generic/jar', honey: 'generic/jar', 'peanut butter': 'generic/jar',
+  mayonnaise: 'generic/jar', pickle: 'generic/jar', marmite: 'generic/jar',
+  // tins and cans
+  bean: 'food/can-1', tomato: 'food/can-1', soup: 'food/can-4',
+  tuna: 'food/can-1', chickpea: 'food/can-1', coke: 'food/can-2',
+  lemonade: 'food/can-3', soda: 'food/can-2',
+  // produce
+  apple: 'food/apple', pear: 'food/pear', broccoli: 'food/broccoli',
+  pumpkin: 'food/pumpkin', squash_veg: 'food/pumpkin', watermelon: 'food/watermelon',
+  melon: 'food/watermelon',
+  // meat
+  steak: 'food/steak', beef: 'food/steak', mince: 'food/steak', lamb: 'food/steak',
+  chicken: 'food/drumstick', drumstick: 'food/drumstick', thigh: 'food/drumstick',
+  turkey: 'food/turkey-leg', ham: 'food/steak', pork: 'food/steak',
+  bacon: 'food/steak', sausage: 'food/drumstick',
+  // dry goods
+  bread: 'food/paper-bag', flour: 'food/paper-bag', sugar: 'food/paper-bag',
+  rice: 'generic/bag', pasta: 'generic/bag', oat: 'generic/bag',
+  lentil: 'generic/bag', potato: 'generic/bag', onion: 'generic/bag',
   cereal: 'generic/box', biscuit: 'generic/box', cracker: 'generic/box',
 }
 

@@ -28,13 +28,16 @@ PALETTE = [
     (0x8a, 0x6a, 0x2e),  # 21 gold-dark
     (0xc4, 0x9a, 0x3c),  # 22 gold
     (0x6b, 0x5a, 0x6b),  # 23 mauve
+    (0x8d, 0x92, 0x71),  # 24 sage        the fridge's enamel
+    (0xc8, 0xc7, 0x96),  # 25 sage-light
+    (0xcf, 0xe8, 0xe4),  # 26 ice         lit fridge interior
 ]
 
 NAMES = [
     "ink", "shadow", "umber", "wood-darkest", "wood-dark", "wood", "wood-light",
     "tan", "cream", "cream-light", "highlight", "red-dark", "red", "terracotta",
     "green-dark", "green", "green-light", "blue-dark", "blue", "blue-light",
-    "mint", "gold-dark", "gold", "mauve",
+    "mint", "gold-dark", "gold", "mauve", "sage", "sage-light", "ice",
 ]
 
 P = {n: c for n, c in zip(NAMES, PALETTE)}

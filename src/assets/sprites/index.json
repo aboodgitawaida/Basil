@@ -1,267 +1,319 @@
 {
  "cat/sleep-0": {
-  "h": 32,
-  "w": 43
+  "h": 36,
+  "w": 48
  },
  "cat/sleep-1": {
-  "h": 32,
-  "w": 43
+  "h": 36,
+  "w": 48
  },
  "cat/sleep-2": {
-  "h": 32,
-  "w": 43
+  "h": 36,
+  "w": 48
  },
  "cat/sleep-3": {
-  "h": 32,
-  "w": 43
+  "h": 36,
+  "w": 48
  },
  "cat/sleep-4": {
-  "h": 32,
-  "w": 43
+  "h": 36,
+  "w": 48
  },
  "cat/sleep-5": {
-  "h": 32,
-  "w": 43
+  "h": 36,
+  "w": 48
  },
- "food/apple": {
-  "h": 13,
-  "w": 12
+ "dish/desert_1": {
+  "h": 31,
+  "w": 32
  },
- "food/aubergine": {
-  "h": 9,
-  "w": 20
+ "dish/desert_2": {
+  "h": 31,
+  "w": 32
  },
- "food/bacon": {
-  "h": 10,
-  "w": 15
+ "dish/desert_3": {
+  "h": 31,
+  "w": 32
  },
- "food/banana": {
-  "h": 16,
-  "w": 16
+ "dish/fish_1": {
+  "h": 27,
+  "w": 28
  },
- "food/carrot": {
-  "h": 9,
-  "w": 25
- },
- "food/cherry": {
-  "h": 6,
-  "w": 7
- },
- "food/chicken": {
-  "h": 17,
+ "dish/fish_2": {
+  "h": 29,
   "w": 26
  },
- "food/chilli": {
-  "h": 10,
+ "dish/fish_3": {
+  "h": 27,
+  "w": 31
+ },
+ "dish/fruit_1": {
+  "h": 30,
+  "w": 30
+ },
+ "dish/fruit_2": {
+  "h": 31,
+  "w": 26
+ },
+ "dish/fruit_3": {
+  "h": 29,
+  "w": 30
+ },
+ "dish/fruit_4": {
+  "h": 29,
+  "w": 30
+ },
+ "dish/meat_1": {
+  "h": 30,
+  "w": 30
+ },
+ "dish/meat_2": {
+  "h": 32,
+  "w": 32
+ },
+ "dish/meat_3": {
+  "h": 32,
+  "w": 30
+ },
+ "dish/nuts_1": {
+  "h": 30,
+  "w": 31
+ },
+ "dish/nuts_2": {
+  "h": 25,
+  "w": 29
+ },
+ "dish/nuts_3": {
+  "h": 24,
+  "w": 30
+ },
+ "dish/pastry_1": {
+  "h": 25,
+  "w": 28
+ },
+ "dish/pastry_2": {
+  "h": 29,
+  "w": 27
+ },
+ "dish/pastry_3": {
+  "h": 31,
+  "w": 29
+ },
+ "dish/potatodish_1": {
+  "h": 24,
+  "w": 27
+ },
+ "dish/potatodish_2": {
+  "h": 23,
+  "w": 25
+ },
+ "dish/potatodish_3": {
+  "h": 25,
+  "w": 28
+ },
+ "dish/potatodish_4": {
+  "h": 24,
+  "w": 27
+ },
+ "dish/soup_1": {
+  "h": 31,
+  "w": 32
+ },
+ "dish/soup_2": {
+  "h": 31,
+  "w": 32
+ },
+ "dish/soup_3": {
+  "h": 31,
+  "w": 32
+ },
+ "dish/vegetable_1": {
+  "h": 31,
+  "w": 31
+ },
+ "dish/vegetable_2": {
+  "h": 31,
+  "w": 31
+ },
+ "dish/vegetable_3": {
+  "h": 32,
+  "w": 26
+ },
+ "dish/vegetable_4": {
+  "h": 30,
+  "w": 26
+ },
+ "food/apple": {
+  "h": 12,
   "w": 12
  },
- "food/corn": {
-  "h": 17,
+ "food/apple-green": {
+  "h": 16,
   "w": 16
  },
- "food/egg": {
-  "h": 6,
-  "w": 8
+ "food/broccoli": {
+  "h": 32,
+  "w": 32
  },
- "food/garlic": {
-  "h": 12,
-  "w": 10
- },
- "food/grapes": {
-  "h": 19,
+ "food/can-1": {
+  "h": 22,
   "w": 14
  },
- "food/ham": {
-  "h": 15,
-  "w": 25
+ "food/can-2": {
+  "h": 22,
+  "w": 14
  },
- "food/lemon": {
+ "food/can-3": {
+  "h": 22,
+  "w": 14
+ },
+ "food/can-4": {
+  "h": 22,
+  "w": 14
+ },
+ "food/cheese": {
+  "h": 22,
+  "w": 26
+ },
+ "food/cheese-wedge": {
+  "h": 18,
+  "w": 22
+ },
+ "food/drumstick": {
+  "h": 14,
+  "w": 26
+ },
+ "food/egg": {
   "h": 8,
-  "w": 11
+  "w": 8
  },
- "food/lime": {
-  "h": 7,
-  "w": 9
- },
- "food/mushroom": {
-  "h": 17,
+ "food/hot-sauce": {
+  "h": 20,
   "w": 12
  },
- "food/orange": {
-  "h": 12,
+ "food/juice": {
+  "h": 26,
+  "w": 12
+ },
+ "food/juice-carton": {
+  "h": 26,
+  "w": 14
+ },
+ "food/ketchup": {
+  "h": 20,
   "w": 10
  },
- "food/pea": {
-  "h": 8,
-  "w": 13
+ "food/milk": {
+  "h": 28,
+  "w": 18
+ },
+ "food/milk-bottle": {
+  "h": 28,
+  "w": 14
+ },
+ "food/mustard": {
+  "h": 24,
+  "w": 12
+ },
+ "food/oil": {
+  "h": 32,
+  "w": 16
+ },
+ "food/paper-bag": {
+  "h": 26,
+  "w": 20
  },
  "food/pear": {
-  "h": 15,
-  "w": 9
- },
- "food/pepper": {
-  "h": 13,
-  "w": 9
+  "h": 20,
+  "w": 14
  },
  "food/pumpkin": {
-  "h": 20,
-  "w": 25
- },
- "food/radish": {
-  "h": 16,
-  "w": 17
- },
- "food/roast-chicken": {
-  "h": 20,
-  "w": 25
+  "h": 32,
+  "w": 38
  },
  "food/steak": {
   "h": 20,
+  "w": 30
+ },
+ "food/tetrapak": {
+  "h": 30,
   "w": 18
  },
- "fridge/carcass": {
-  "h": 170,
-  "w": 60
+ "food/turkey-leg": {
+  "h": 18,
+  "w": 32
+ },
+ "food/water": {
+  "h": 24,
+  "w": 12
+ },
+ "food/watermelon": {
+  "h": 30,
+  "w": 38
+ },
+ "food/wine": {
+  "h": 22,
+  "w": 8
  },
  "fridge/door-0": {
-  "h": 118,
-  "w": 60
+  "h": 166,
+  "w": 76
  },
  "fridge/door-1": {
-  "h": 118,
-  "w": 42
+  "h": 166,
+  "w": 76
  },
  "fridge/door-2": {
-  "h": 118,
-  "w": 26
+  "h": 166,
+  "w": 76
  },
  "fridge/door-3": {
-  "h": 118,
-  "w": 11
+  "h": 166,
+  "w": 114
  },
- "fridge/freezer-0": {
-  "h": 52,
-  "w": 60
- },
- "fridge/freezer-1": {
-  "h": 52,
-  "w": 42
- },
- "fridge/freezer-2": {
-  "h": 52,
-  "w": 26
- },
- "fridge/freezer-3": {
-  "h": 52,
-  "w": 11
+ "fridge/door-4": {
+  "h": 170,
+  "w": 146
  },
  "generic/bag": {
-  "h": 18,
-  "w": 16
- },
- "generic/bottle": {
-  "h": 17,
-  "w": 16
- },
- "generic/box": {
-  "h": 17,
-  "w": 17
- },
- "generic/can": {
-  "h": 17,
-  "w": 11
- },
- "generic/carton": {
-  "h": 23,
-  "w": 13
- },
- "generic/cheese": {
-  "h": 16,
+  "h": 22,
   "w": 18
  },
- "generic/fungus": {
-  "h": 14,
-  "w": 14
- },
- "generic/herb": {
-  "h": 21,
-  "w": 16
+ "generic/box": {
+  "h": 20,
+  "w": 20
  },
  "generic/jar": {
-  "h": 17,
-  "w": 16
- },
- "generic/meat": {
-  "h": 14,
-  "w": 12
- },
- "generic/produce": {
-  "h": 15,
-  "w": 12
+  "h": 20,
+  "w": 20
  },
  "kit/bowl": {
-  "h": 9,
-  "w": 14
- },
- "kit/chef-knife": {
-  "h": 5,
-  "w": 28
+  "h": 10,
+  "w": 16
  },
  "kit/fork": {
-  "h": 7,
-  "w": 11
- },
- "kit/knife": {
-  "h": 5,
-  "w": 13
- },
- "kit/ladle": {
-  "h": 20,
-  "w": 12
- },
- "kit/masher": {
   "h": 8,
-  "w": 26
+  "w": 10
  },
  "kit/mixing-bowl": {
-  "h": 13,
+  "h": 14,
   "w": 16
  },
  "kit/pan": {
   "h": 10,
-  "w": 25
+  "w": 24
  },
  "kit/plate": {
-  "h": 4,
-  "w": 21
- },
- "kit/plate-large": {
-  "h": 5,
-  "w": 26
- },
- "kit/plate-small": {
-  "h": 4,
-  "w": 11
+  "h": 6,
+  "w": 20
  },
  "kit/plate-stack": {
-  "h": 15,
-  "w": 21
- },
- "kit/pot": {
-  "h": 19,
+  "h": 16,
   "w": 22
  },
- "kit/rolling-pin": {
-  "h": 6,
-  "w": 28
- },
- "kit/spatula": {
-  "h": 8,
-  "w": 23
- },
- "kit/spoon": {
-  "h": 7,
-  "w": 12
+ "kit/pot": {
+  "h": 20,
+  "w": 20
  },
  "room/clock": {
   "h": 26,
@@ -269,43 +321,11 @@
  },
  "room/counter": {
   "h": 90,
-  "w": 64
+  "w": 52
  },
  "room/counter-drawers": {
   "h": 90,
-  "w": 64
- },
- "room/cup-l-0": {
-  "h": 62,
-  "w": 22
- },
- "room/cup-l-1": {
-  "h": 62,
-  "w": 18
- },
- "room/cup-l-2": {
-  "h": 62,
-  "w": 14
- },
- "room/cup-l-3": {
-  "h": 62,
-  "w": 9
- },
- "room/cup-r-0": {
-  "h": 62,
-  "w": 22
- },
- "room/cup-r-1": {
-  "h": 62,
-  "w": 18
- },
- "room/cup-r-2": {
-  "h": 62,
-  "w": 14
- },
- "room/cup-r-3": {
-  "h": 62,
-  "w": 9
+  "w": 52
  },
  "room/cupboard-carcass": {
   "h": 62,
@@ -315,8 +335,28 @@
   "h": 32,
   "w": 32
  },
+ "room/pantry-carcass": {
+  "h": 90,
+  "w": 52
+ },
+ "room/pantry-door-0": {
+  "h": 68,
+  "w": 44
+ },
+ "room/pantry-door-1": {
+  "h": 68,
+  "w": 34
+ },
+ "room/pantry-door-2": {
+  "h": 68,
+  "w": 26
+ },
+ "room/pantry-door-3": {
+  "h": 68,
+  "w": 20
+ },
  "room/pendant": {
-  "h": 15,
+  "h": 16,
   "w": 22
  },
  "room/skirting": {
