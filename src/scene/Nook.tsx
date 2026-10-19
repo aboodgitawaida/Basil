@@ -1,6 +1,5 @@
 import { FLOOR_Y, CEILING_H, NOOK, ROOM } from '../lib/room'
 import { LAND, type Season } from '../lib/seasons'
-import { spriteSize } from '../lib/sprites'
 import { Sprite } from './Sprite'
 import { Shadow } from './Room'
 
@@ -20,7 +19,6 @@ const ON_SHELF: Array<[string, number, number]> = [
 export function Nook({ season, night }: { season: Season; night: number }) {
   const { shelf, table, lamp, picture } = NOOK
   const tableTop = FLOOR_Y - table.h
-  const bowl = spriteSize('kit/bowl')
   return (
     <>
       {/* picture: a little landscape in a wooden frame */}
@@ -58,30 +56,6 @@ export function Nook({ season, night }: { season: Season; night: number }) {
         <i className="nook__leg" style={{ right: 4 }} />
       </div>
 
-      {/* laid for one, with something for the season in the middle */}
-      <Sprite k="kit/plate" x={table.x + 6} bottom={tableTop + 1} />
-      <Sprite k="kit/fork" x={table.x + 27} bottom={tableTop + 1} />
-      {season === 'autumn' && <Sprite k="food/pumpkin" x={table.x + 38} bottom={tableTop + 1} />}
-      {season === 'summer' && <Sprite k="food/watermelon" x={table.x + 38} bottom={tableTop + 1} />}
-      {(season === 'spring' || season === 'winter') && (
-        <>
-          <Sprite k="food/apple" x={table.x + 52} bottom={tableTop - bowl.h + 5} />
-          <Sprite k="food/pear" x={table.x + 58} bottom={tableTop - bowl.h + 6} />
-          <Sprite k="kit/bowl" x={table.x + 50} bottom={tableTop + 1} />
-        </>
-      )}
-      {season === 'spring' && (
-        // a jam jar of flowers
-        <span className="nook__vase" style={{ left: table.x + 40, top: tableTop - 14 }}>
-          <i className="nook__stem" style={{ left: 1, height: 8 }} />
-          <i className="nook__stem" style={{ left: 3, height: 10 }} />
-          <i className="nook__stem" style={{ left: 5, height: 7 }} />
-          <i className="nook__bloom" style={{ left: 0, top: 4, background: '#f4b6c8' }} />
-          <i className="nook__bloom" style={{ left: 2, top: 1, background: '#f2d64e' }} />
-          <i className="nook__bloom" style={{ left: 4, top: 5, background: '#fff4f0' }} />
-          <i className="nook__jar" />
-        </span>
-      )}
       {season === 'winter' && (
         // fairy lights strung along the ceiling, brighter after dark
         <span className="lights" style={{ left: 0, top: CEILING_H, width: ROOM.w, opacity: 0.55 + night * 0.45 }}>
