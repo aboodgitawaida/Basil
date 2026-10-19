@@ -17,32 +17,44 @@ export const CUES = {
 
 /**
  * Muted by default and never autoplays: the first sound only ever happens
- * after a click, which is also what browsers require.
+ * after a click, which is also what browsers require. Effects and music are
+ * switched separately.
  */
 class Sound {
   private enabled = false
+  private musicOn = false
+  private track = 'music-drink-and-chill'
   private music?: HTMLAudioElement
   private cache = new Map<string, HTMLAudioElement>()
 
   setEnabled(on: boolean) {
     this.enabled = on
-    if (!on) {
+  }
+
+  setMusic(on: boolean, track?: 'title' | 'kitchen') {
+    const want = track === 'title' ? 'music-autumn' : track === 'kitchen' ? 'music-drink-and-chill' : this.track
+    if (want !== this.track) {
       this.music?.pause()
-      return
+      this.music = undefined
+      this.track = want
     }
+    this.musicOn = on
+    if (!on) { this.music?.pause(); return }
     void this.startMusic()
   }
 
   private async startMusic() {
-    this.music ??= Object.assign(new Audio(byName['music-drink-and-chill']), {
-      loop: true,
-      volume: 0.25,
-    })
+    this.music ??= Object.assign(new Audio(byName[this.track]), { loop: true, volume: 0.25 })
     try {
       await this.music.play()
     } catch {
-      /* the browser said no; the toggle stays on and the next tap will take */
+      /* the browser said no; the next click will take */
     }
+  }
+
+  /** Call from a click: browsers only allow audio to start inside one. */
+  nudge() {
+    if (this.musicOn && this.music?.paused) void this.startMusic()
   }
 
   play(cue: keyof typeof CUES, volume = 0.5) {

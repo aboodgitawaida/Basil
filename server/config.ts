@@ -31,7 +31,7 @@ export const PROVIDERS: Record<ProviderName, ProviderConfig> = {
     // gemini-2.0-flash has been retired. The -latest alias follows Google's
     // current Flash model; pin an exact name with BASIL_MODEL if you need to.
     model: 'gemini-flash-latest',
-    maxOutputTokens: 2048,
+    maxOutputTokens: 4096,
     timeoutMs: 20_000,
   },
   groq: {
@@ -41,7 +41,7 @@ export const PROVIDERS: Record<ProviderName, ProviderConfig> = {
     urlEnv: 'BASIL_GROQ_URL',
     // llama-3.3-70b-versatile was retired on Groq in Aug 2026; this is Groq's named replacement.
     model: 'openai/gpt-oss-120b',
-    maxOutputTokens: 2048,
+    maxOutputTokens: 4096,
     timeoutMs: 20_000,
   },
 }

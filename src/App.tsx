@@ -1,75 +1,97 @@
-import { useCallback, useEffect, useState } from 'react'
-import { ROOM, fitScale } from './lib/room'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { ROOM, layout } from './lib/room'
 import { Room } from './scene/Room'
 import { DebugManifest } from './scene/DebugManifest'
 import { Toast } from './ui/Toast'
-import { AddBar } from './ui/AddBar'
+import { AddBar, Clock } from './ui/Hud'
 import { ItemCard } from './ui/ItemCard'
 import { useStore } from './lib/useStore'
 import { aiStatus, parseText, type ParseOutcome } from './lib/ai'
 import { useBasil } from './lib/useBasil'
 import { ParsePreview } from './ui/ParsePreview'
-import { addItems, moveItem, removeItem, setAmount, topQuickAdd } from './lib/inventory'
+import { addItems, moveItem, removeItem, setAmount, setCount, topQuickAdd } from './lib/inventory'
 import { useItemDrag, type DropTarget } from './lib/useItemDrag'
-import { boardItems, cook, emptyBoard, book, type Board } from './lib/craft'
-import { judgeCraft, suggestMeals, type Meal, type Verdict } from './lib/ai'
-import { CraftBoard } from './scene/CraftBoard'
-import { CraftPanel } from './ui/CraftPanel'
-import { RecipeBook } from './ui/RecipeBook'
+import { cook } from './lib/craft'
+import type { Filter, Match } from './lib/recipes'
+import { Cookbook } from './ui/Cookbook'
 import { Credits } from './ui/Credits'
-import { lighting, nightLevel } from './lib/daylight'
+import { Settings } from './ui/Settings'
+import { PantryList } from './ui/PantryList'
+import { TitleScreen } from './ui/TitleScreen'
+import { Modal } from './ui/kit'
+import { nightLevel } from './lib/daylight'
 import { fetchSky, type Sky } from './lib/weather'
 import { sound } from './lib/sound'
 import type { Mood } from './scene/Bubble'
 import { spriteSize, spriteUrl } from './lib/sprites'
-import type { Item, Location } from './lib/schema'
+import { prettyName, type Item, type Location, type Settings as SettingsT } from './lib/schema'
 
-export function App() {
-  const [scale, setScale] = useState(() => fitScale(window.innerWidth, window.innerHeight))
-  const [fridgeOpen, setFridgeOpen] = useState(false)
-  const [cupboardOpen, setCupboardOpen] = useState(false)
-  const [picked, setPicked] = useState<Item | null>(null)
-  const [pending, setPending] = useState<ParseOutcome | null>(null)
-  const [busy, setBusy] = useState(false)
-  const [hint, setHint] = useState<string | undefined>(undefined)
-  const [board, setBoard] = useState<Board>(emptyBoard)
-  const [verdict, setVerdict] = useState<Verdict | null>(null)
-  const [craftWhy, setCraftWhy] = useState<string | undefined>()
-  const [suggestWhy, setSuggestWhy] = useState<string | undefined>()
-  const [thinking, setThinking] = useState(false)
-  const [bookOpen, setBookOpen] = useState(false)
-  const [suggestions, setSuggestions] = useState<Meal[]>([])
-  const [suggestLine, setSuggestLine] = useState<string | undefined>()
-  const [suggesting, setSuggesting] = useState(false)
-  const [clock, setClock] = useState(() => nightLevel())
-  const [sky, setSky] = useState<Sky>('clear')
-  const [say, setSay] = useState<Mood | null>(null)
-  const [creditsOpen, setCreditsOpen] = useState(false)
-  const debug = new URLSearchParams(window.location.search).has('debug')
-  const { state, loaded, apply, applyQuiet, undo, undoable, dismissUndo } = useStore()
-  const basil = useBasil(state.items, state.settings.dietary, fridgeOpen)
+type Overlay = 'settings' | 'credits' | 'cookbook' | 'pantry' | 'menu' | null
 
-  // the room's light follows the real clock unless the switch says otherwise
+const useNow = () => {
+  const [now, setNow] = useState(() => new Date())
   useEffect(() => {
-    const id = window.setInterval(() => setClock(nightLevel()), 60_000)
+    const id = window.setInterval(() => setNow(new Date()), 20_000)
     return () => window.clearInterval(id)
   }, [])
-  useEffect(() => { void fetchSky(state.settings.lat, state.settings.lon).then(setSky) },
-    [state.settings.lat, state.settings.lon])
-  useEffect(() => { sound.setEnabled(state.settings.sound) }, [state.settings.sound])
+  return now
+}
 
-  const override = state.settings.lightOverride
-  const night = override === null ? clock : override
-  const { sky: skyColour } = lighting(night)
-  const lampOn = night > 0.15 ? override !== 1 : override === 1
+export function App() {
+  const [screen, setScreen] = useState<'title' | 'game'>('title')
+  const [overlay, setOverlay] = useState<Overlay>(null)
+  const [view, setView] = useState(() => layout(window.innerWidth, window.innerHeight))
+  const [fridgeOpen, setFridgeOpen] = useState(false)
+  const [cupboardOpen, setCupboardOpen] = useState(false)
+  const [picked, setPicked] = useState<string | null>(null)
+  const [pending, setPending] = useState<ParseOutcome | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [aiReady, setAiReady] = useState(false)
+  const [sky, setSky] = useState<Sky>('clear')
+  const [say, setSay] = useState<Mood | null>(null)
+  const [filters, setFilters] = useState<Filter[] | null>(null)
+  const [barH, setBarH] = useState(120)
+  const bar = useRef<HTMLDivElement>(null)
+  const now = useNow()
+  const debug = new URLSearchParams(window.location.search).has('debug')
+  const { state, loaded, apply, applyQuiet, undo, undoable, dismissUndo } = useStore()
+  const basil = useBasil(state.items, fridgeOpen)
+  const settings = state.settings
 
   useEffect(() => {
-    const onResize = () => setScale(fitScale(window.innerWidth, window.innerHeight))
+    const onResize = () => setView(layout(window.innerWidth, window.innerHeight, barH + 15))
+    onResize()
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
-  }, [])
+  }, [barH])
 
-  // Nothing is written until the preview is accepted.
+  useEffect(() => { void aiStatus().then(s => setAiReady(s.configured)) }, [])
+  useEffect(() => { sound.setEnabled(settings.sound) }, [settings.sound])
+  useEffect(() => { sound.setMusic(settings.music, screen === 'title' ? 'title' : 'kitchen') }, [settings.music, screen])
+  // browsers only start audio inside a click
+  useEffect(() => {
+    const go = () => sound.nudge()
+    window.addEventListener('pointerdown', go)
+    return () => window.removeEventListener('pointerdown', go)
+  }, [])
+  useEffect(() => {
+    if (screen !== 'game' || !settings.weather) { setSky('clear'); return }
+    void fetchSky(settings.lat, settings.lon).then(setSky)
+  }, [screen, settings.weather, settings.lat, settings.lon])
+
+  useEffect(() => {
+    if (!bar.current) return
+    const ro = new ResizeObserver(() => setBarH(bar.current?.offsetHeight ?? 120))
+    ro.observe(bar.current)
+    return () => ro.disconnect()
+  }, [screen])
+
+  // the sky is the real clock; the lamp switches itself on after dark unless told
+  const night = nightLevel(now)
+  const lampOn = settings.lamp ?? night > 0.3
+
+  const setSettings = (next: SettingsT) => applyQuiet(s => ({ ...s, settings: next }))
+
   const add = useCallback(async (text: string) => {
     setBusy(true)
     try {
@@ -82,81 +104,63 @@ export function App() {
 
   const commit = useCallback(() => {
     if (!pending?.drafts.length) return
-    const what = pending.drafts.length === 1
-      ? pending.drafts[0].displayName
-      : `${pending.drafts.length} things`
+    const what = pending.drafts.length === 1 ? pending.drafts[0].displayName : `${pending.drafts.length} things`
+    sound.play('place')
     apply(`Put ${what} away.`, addItems(pending.drafts))
     setPending(null)
   }, [pending, apply])
 
-  useEffect(() => {
-    void aiStatus().then(s => {
-      if (!s.configured) setHint('No model key set — using the simple parser.')
-    })
-  }, [])
-
-  const change = (fn: (s: ReturnType<typeof useStore>['state']) => typeof state, label: string) =>
-    apply(label, fn)
-
   const onDrop = useCallback((item: Item, t: DropTarget) => {
-    if (t.type === 'move') {
-      change(moveItem(item.id, t.to), `Moved ${item.displayName} to the ${t.to}.`)
-      return
-    }
-    setBoard(b => {
-      const next = b.map(id => (id === item.id ? null : id))
-      next[t.slot] = item.id
-      return next
-    })
+    apply(`Moved ${item.displayName} to the ${t.to}.`, moveItem(item.id, t.to))
   }, [apply])
+  const { drag, handlers } = useItemDrag(onDrop, i => setPicked(i.id))
 
-  const { drag, handlers } = useItemDrag(onDrop, setPicked)
+  const pickedItem = picked ? state.items.find(i => i.id === picked) : undefined
 
-  const used = boardItems(board, state.items)
+  const flash = (m: Mood, ms = 2600) => {
+    setSay(m)
+    window.setTimeout(() => setSay(null), ms)
+  }
 
-  // live preview as the board fills; debounced so a quick rearrange is one ask
-  useEffect(() => {
-    if (!used.length) { setVerdict(null); return }
-    let cancelled = false
-    setThinking(true)
-    const t = window.setTimeout(() => {
-      void judgeCraft(used).then(({ verdict, why }) => {
-        if (!cancelled) { setVerdict(verdict); setCraftWhy(why); setThinking(false) }
-      })
-    }, 500)
-    return () => { cancelled = true; window.clearTimeout(t); window.clearTimeout(t) }
-    // the ids on the board are what matters, not the array identity
-  }, [board.join(','), state.items.length])
-
-  const doCook = useCallback(() => {
-    if (!verdict?.ok || !used.length) return
+  const doCook = useCallback((m: Match) => {
     sound.play('cook')
-    apply(`Cooked ${verdict.name}.`, cook(verdict.name, used, verdict.steps, verdict.minutes))
-    setBoard(emptyBoard())
-    setVerdict(null)
-    setSay('ok')
-    window.setTimeout(() => setSay(null), 2600)
-  }, [verdict, used, apply])
+    apply(`Cooked ${m.recipe.name.toLowerCase()}.`, cook(m))
+    setOverlay(null)
+    flash('love')
+    basil.say({ title: `${m.recipe.name}. Acceptable. I'll have the leftovers.` }, 5000)
+  }, [apply, basil])
 
-  const openBook = useCallback(() => {
-    setBookOpen(true)
-    setSuggesting(true)
-    void suggestMeals(state.items, state.settings.dietary).then(r => {
-      setSuggestions(r.meals)
-      setSuggestLine(r.line)
-      setSuggestWhy(r.why)
-      setSuggesting(false)
-      setSay('idea')
-      window.setTimeout(() => setSay(null), 3200)
-    })
-  }, [state.items, state.settings.dietary])
+  const cookFilters = useMemo<Filter[]>(() => filters ?? [
+    ...(settings.dietary.includes('vegan') ? ['vegan' as const] : settings.dietary.includes('vegetarian') ? ['vegetarian' as const] : []),
+  ], [filters, settings.dietary])
 
   if (!loaded) return <div className="stage" />
 
+  const hasSave = state.items.length > 0 || state.history.length > 0
+  const firstRun = state.items.length === 0 && state.history.length === 0
+
+  if (screen === 'title') {
+    return (
+      <>
+        <TitleScreen
+          hasSave={hasSave}
+          onStart={() => { sound.play('cook', 0.35); setScreen('game') }}
+          onSettings={() => setOverlay('settings')}
+          onCredits={() => setOverlay('credits')}
+        />
+        {overlay === 'settings' && <Settings settings={settings} onChange={setSettings} onClose={() => setOverlay(null)} />}
+        {overlay === 'credits' && <Credits onClose={() => setOverlay(null)} />}
+      </>
+    )
+  }
+
   return (
-    <div className="app" style={{ ['--scale' as string]: scale }}>
+    <div className="app">
       <div className="stage">
-        <div className="stage__scaler" style={{ width: ROOM.w, height: ROOM.h }}>
+        <div
+          className="stage__scaler"
+          style={{ left: view.left, top: view.top, width: ROOM.w, height: ROOM.h, transform: `scale(${view.scale})` }}
+        >
           <Room
             fridgeOpen={fridgeOpen}
             cupboardOpen={cupboardOpen}
@@ -165,35 +169,17 @@ export function App() {
             items={state.items}
             itemHandlers={handlers}
             draggingId={drag?.item.id}
-            crafting={used.length > 0}
-            onBoard={board}
+            now={now}
             night={night}
             sky={sky}
-            skyColour={skyColour}
             lampOn={lampOn}
-            onLamp={() => {
-              sound.play('toggle')
-              applyQuiet(s => ({
-                ...s,
-                settings: { ...s.settings, lightOverride: lampOn ? 1 : 0 },
-              }))
-            }}
-            onAskBasil={() => { sound.play('place', 0.35); void basil.ask() }}
+            onLamp={() => { sound.play('toggle'); setSettings({ ...settings, lamp: !lampOn }) }}
+            onAskBasil={() => { sound.play('place', 0.35); basil.hush(); setOverlay('cookbook') }}
             onHushBasil={basil.hush}
             basilSpeech={basil.speech}
-            basilThinking={basil.thinking}
+            basilAwake={overlay === 'cookbook'}
             say={say}
-          >
-            {/* the board only exists while it is wanted: either something is
-                on it, or something is being dragged and needs a target */}
-            {(used.length > 0 || drag) && (
-              <CraftBoard
-                board={board}
-                items={state.items}
-                onClear={n => setBoard(b => b.map((id, i) => (i === n ? null : id)))}
-              />
-            )}
-          </Room>
+          />
         </div>
       </div>
 
@@ -202,46 +188,50 @@ export function App() {
           className="drag-ghost"
           style={{
             left: drag.x, top: drag.y,
-            width: spriteSize(drag.item.spriteKey).w * scale,
-            height: spriteSize(drag.item.spriteKey).h * scale,
+            width: spriteSize(drag.item.spriteKey).w * view.scale,
+            height: spriteSize(drag.item.spriteKey).h * view.scale,
           }}
         >
           <img src={spriteUrl(drag.item.spriteKey)} alt="" />
         </span>
       )}
 
-      <div className="dock">
-        <Toast undoable={undoable} onUndo={undo} onDismiss={dismissUndo} />
-        <div className="dock__craft">
-          <CraftPanel
-            used={used}
-            verdict={verdict}
-            why={craftWhy}
-            thinking={thinking}
-            onCook={doCook}
-            onClear={() => setBoard(emptyBoard())}
-          />
-          <button className="chip chip--quiet" onClick={openBook}>book</button>
-          <button
-            className="chip chip--quiet"
-            onClick={() => applyQuiet(s => ({ ...s, settings: { ...s.settings, sound: !s.settings.sound } }))}
-            aria-label={state.settings.sound ? 'Mute' : 'Unmute'}
-          >{state.settings.sound ? '♪ on' : '♪ off'}</button>
-        </div>
+      <div className="hud">
+        <nav className="hud__menu">
+          <button className="sv-btn" onClick={() => setOverlay('menu')}>menu</button>
+          <button className="sv-btn" onClick={() => setOverlay('pantry')}>kitchen{state.items.length ? ` (${state.items.length})` : ''}</button>
+          <button className="sv-btn sv-btn--go" onClick={() => setOverlay('cookbook')}>cookbook</button>
+        </nav>
+        <Clock now={now} sky={sky} />
+
+        {firstRun && !overlay && !pending && (
+          <p className="hud__tip sv-frame sv-small" style={{ top: 18 }}>
+            type what you bought below · click Basil the cat for recipes · click the fridge to open it
+          </p>
+        )}
+
         <AddBar
+          barRef={bar}
           onSubmit={t => void add(t)}
-          quick={topQuickAdd(state)}
+          quick={topQuickAdd(state, 6).map(n => prettyName(n))}
           onQuick={name => void add(name)}
           busy={busy}
-          hint={hint}
+          hint={aiReady ? undefined : 'No model key set — Basil reads your list himself and uses his built-in cookbook.'}
         />
       </div>
+
+      <Toast undoable={undoable} onUndo={undo} onDismiss={dismissUndo} />
 
       {pending && (
         <ParsePreview
           outcome={pending}
+          have={state.items}
           onConfirm={commit}
           onCancel={() => setPending(null)}
+          onCount={(i, n) => setPending(p => p && ({
+            ...p,
+            drafts: p.drafts.map((d, k) => (k === i ? { ...d, count: n, displayName: d.name ? prettyName(d.name, n, d.unit) : d.displayName } : d)),
+          }))}
           onDrop={i => setPending(p => {
             if (!p) return p
             const drafts = p.drafts.filter((_, n) => n !== i)
@@ -250,29 +240,56 @@ export function App() {
         />
       )}
 
-      {picked && (
+      {pickedItem && (
         <ItemCard
-          item={picked}
+          item={pickedItem}
           onClose={() => setPicked(null)}
-          onAmount={a => { change(setAmount(picked.id, a), `${picked.displayName} is ${a}.`); setPicked(null) }}
-          onMove={(l: Location) => { change(moveItem(picked.id, l), `Moved ${picked.displayName} to the ${l}.`); setPicked(null) }}
-          onRemove={() => { change(removeItem(picked.id), `${picked.displayName} is gone.`); setPicked(null) }}
+          onAmount={a => apply(`${pickedItem.displayName} is ${a}.`, setAmount(pickedItem.id, a))}
+          onCount={n => {
+            apply(n <= 0 ? `${pickedItem.displayName} is gone.` : `${pickedItem.displayName}: ${n}.`, setCount(pickedItem.id, n))
+            if (n <= 0) setPicked(null)
+          }}
+          onMove={(l: Location) => apply(`Moved ${pickedItem.displayName} to the ${l}.`, moveItem(pickedItem.id, l))}
+          onRemove={() => { apply(`${pickedItem.displayName} is gone.`, removeItem(pickedItem.id)); setPicked(null) }}
         />
       )}
 
-      {bookOpen && (
-        <RecipeBook
-          entries={book(state)}
-          suggestions={suggestions}
-          line={suggestLine}
-          why={suggestWhy}
-          loading={suggesting}
-          onClose={() => setBookOpen(false)}
+      {overlay === 'cookbook' && (
+        <Cookbook
+          items={state.items}
+          history={state.history}
+          dietary={settings.dietary}
+          aiReady={aiReady}
+          filters={cookFilters}
+          onFilters={setFilters}
+          onCook={doCook}
+          onClose={() => setOverlay(null)}
         />
       )}
 
-      {creditsOpen && <Credits onClose={() => setCreditsOpen(false)} />}
-      <button className="credits__link u-small" onClick={() => setCreditsOpen(true)}>credits</button>
+      {overlay === 'pantry' && <PantryList items={state.items} onPick={i => setPicked(i.id)} onClose={() => setOverlay(null)} />}
+
+      {overlay === 'menu' && (
+        <Modal title="Menu" onClose={() => setOverlay(null)} size="narrow">
+          <div className="title__menu" style={{ marginTop: 6, alignItems: 'center' }}>
+            <button className="sv-btn sv-btn--big sv-btn--go" onClick={() => setOverlay(null)} autoFocus>Back to the kitchen</button>
+            <button className="sv-btn sv-btn--big" onClick={() => setOverlay('settings')}>Settings</button>
+            <button className="sv-btn sv-btn--big" onClick={() => setOverlay('credits')}>Credits</button>
+            <button className="sv-btn sv-btn--big sv-btn--quiet" onClick={() => { setOverlay(null); setScreen('title') }}>Title screen</button>
+          </div>
+        </Modal>
+      )}
+
+      {overlay === 'settings' && (
+        <Settings
+          settings={settings}
+          onChange={setSettings}
+          aiNote={aiReady ? 'A model is connected: Basil reads your shopping and adds recipe ideas of his own.' : 'No model key is set. Everything still works: a built-in reader and a built-in cookbook of about forty recipes.'}
+          onReset={() => { apply('Emptied the kitchen.', s => ({ ...s, items: [], history: [], quickAdd: {} })); setOverlay(null) }}
+          onClose={() => setOverlay(null)}
+        />
+      )}
+      {overlay === 'credits' && <Credits onClose={() => setOverlay(null)} />}
 
       {debug && <DebugManifest />}
     </div>

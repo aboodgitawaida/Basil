@@ -1,0 +1,115 @@
+import { useEffect, useRef } from 'react'
+import { SKY, arc, arcHeight, phaseAt, type Phase } from '../lib/daylight'
+import { spriteUrl } from '../lib/sprites'
+import { useLoop } from '../lib/useLoop'
+import { Zoom } from './kit'
+
+type Props = {
+  hasSave: boolean
+  onStart: () => void
+  onSettings: () => void
+  onCredits: () => void
+}
+
+const W = 240
+const H = 135
+
+/** Hills, trees and a cottage, drawn once at a tiny size and scaled up with
+ *  nearest-neighbour so every pixel is a hard square. The sky is the real
+ *  time of day, the same as the kitchen window. */
+function paint(c: HTMLCanvasElement, phase: Phase, now: Date) {
+  const g = c.getContext('2d')!
+  const [top, mid, low] = SKY[phase]
+  const night = phase === 'night' || phase === 'dusk'
+  g.fillStyle = top; g.fillRect(0, 0, W, H)
+  g.fillStyle = mid; g.fillRect(0, 40, W, H)
+  g.fillStyle = low; g.fillRect(0, 66, W, H)
+
+  if (night) {
+    g.fillStyle = '#f4f0d8'
+    for (let i = 0; i < 60; i++) g.fillRect((i * 97) % W, (i * 53) % 70, 1, 1)
+  }
+  const { body, t } = arc(now)
+  const bx = Math.round(20 + t * (W - 40)), by = Math.round(80 - arcHeight(t) * 64)
+  g.fillStyle = body === 'sun' ? (phase === 'evening' || phase === 'dawn' ? '#ffd28a' : '#fff1b8') : '#eef0dc'
+  g.fillRect(bx - 5, by - 5, 10, 10)
+  g.fillRect(bx - 6, by - 3, 12, 6)
+  g.fillRect(bx - 3, by - 6, 6, 12)
+
+  const hill = (base: number, amp: number, freq: number, off: number, colour: string) => {
+    g.fillStyle = colour
+    for (let x = 0; x < W; x++) {
+      const y = Math.round(base - amp * Math.sin(x / freq + off) - amp * 0.4 * Math.sin(x / (freq * 0.37) + off * 2))
+      g.fillRect(x, y, 1, H - y)
+    }
+  }
+  const dim = night ? 0.45 : phase === 'evening' || phase === 'dawn' ? 0.8 : 1
+  const shade = (hex: string) => {
+    const n = parseInt(hex.slice(1), 16)
+    const f = (v: number) => Math.round(v * dim).toString(16).padStart(2, '0')
+    return `#${f(n >> 16)}${f((n >> 8) & 255)}${f(n & 255)}`
+  }
+  hill(86, 8, 30, 1, shade('#7fa36a'))
+  hill(98, 6, 22, 3, shade('#5f8a45'))
+
+  // trees along the back ridge
+  for (let i = 0; i < 14; i++) {
+    const x = (i * 41 + 7) % W, y = 92 - ((i * 7) % 6)
+    g.fillStyle = shade('#3f6b2f'); g.fillRect(x - 3, y - 9, 7, 9); g.fillRect(x - 2, y - 12, 5, 3); g.fillRect(x - 1, y - 14, 3, 2)
+    g.fillStyle = shade('#5a3a22'); g.fillRect(x, y, 1, 3)
+  }
+  hill(112, 5, 18, 5, shade('#6fae47'))
+
+  // the cottage the kitchen is in
+  const cx = 150, cy = 104
+  g.fillStyle = shade('#e8c99a'); g.fillRect(cx, cy, 30, 16)
+  g.fillStyle = shade('#a8452f'); for (let r = 0; r < 9; r++) g.fillRect(cx - 3 + r, cy - 1 - r, 36 - r * 2, 1)
+  g.fillStyle = shade('#7a5742'); g.fillRect(cx + 4, cy + 6, 6, 10)
+  g.fillStyle = night ? '#f2c14e' : shade('#7fb6d9'); g.fillRect(cx + 17, cy + 5, 8, 6)
+  g.fillStyle = shade('#5e4440'); g.fillRect(cx + 24, cy - 12, 4, 6)
+
+  // a path and a fence
+  g.fillStyle = shade('#d9b77e')
+  for (let y = cy + 16; y < H; y++) g.fillRect(cx + 5 - Math.round((y - cy - 16) * 0.8), y, 6 + Math.round((y - cy - 16) * 0.5), 1)
+  g.fillStyle = shade('#8f6a45')
+  for (let x = 0; x < 120; x += 6) g.fillRect(x, 118, 1, 6)
+  g.fillRect(0, 120, 120, 1)
+  hill(132, 2, 12, 2, shade('#4f8a2a'))
+}
+
+export function TitleScreen({ hasSave, onStart, onSettings, onCredits }: Props) {
+  const canvas = useRef<HTMLCanvasElement>(null)
+  const now = new Date()
+  const phase = phaseAt(now)
+  const frame = useLoop(6, 420)
+
+  useEffect(() => {
+    if (canvas.current) paint(canvas.current, phase, new Date())
+  }, [phase])
+
+  const night = phase === 'night' || phase === 'dusk'
+
+  return (
+    <div className="title">
+      <canvas ref={canvas} className="title__land" width={W} height={H} style={{ objectFit: 'cover' }} />
+      {!night && [1, 2, 3, 4].map(n => (
+        <img key={n} className="title__cloud" src={spriteUrl(`sky/cloud-${n}`)} alt=""
+          style={{ top: `${6 + n * 7}%`, width: 27 * (n % 2 ? 6 : 4), animationDuration: `${70 + n * 23}s`, animationDelay: `-${n * 19}s` }} />
+      ))}
+
+      <div className="title__inner">
+        <div className="title__sign">
+          <span className="title__cat"><Zoom k={`cat/sleep-${frame}`} scale={3} /></span>
+          <h1 className="title__logo">B<span>a</span>sil</h1>
+          <p className="title__tag sv-wood">a cosy kitchen, and the cat who runs it</p>
+        </div>
+        <nav className="title__menu">
+          <button className="sv-btn sv-btn--big sv-btn--go" onClick={onStart} autoFocus>{hasSave ? 'Continue' : 'Start'}</button>
+          <button className="sv-btn sv-btn--big" onClick={onSettings}>Settings</button>
+          <button className="sv-btn sv-btn--big" onClick={onCredits}>Credits</button>
+        </nav>
+      </div>
+      <p className="title__foot sv-small">click Basil for recipes · click the fridge to open it · type what you bought</p>
+    </div>
+  )
+}

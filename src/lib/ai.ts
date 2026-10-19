@@ -1,6 +1,7 @@
 import type { Draft } from './inventory'
 import { keywordParse } from './keywordParser'
-import { covers, type Category, type Item, type Location } from './schema'
+import type { Recipe, Tag } from './recipes'
+import { prettyName, type Category, type Item, type Location } from './schema'
 
 export type AiStatus = { provider: string; model: string; configured: boolean }
 
@@ -70,8 +71,11 @@ export async function parseText(text: string): Promise<ParseOutcome> {
   if (!body?.ok) return fallback(`${failureMessage(body?.reason, body?.detail)} Using the simple parser.`)
 
   const drafts: Draft[] = body.data.items.map((i: any) => ({
-    displayName: i.displayName,
+    displayName: i.displayName || prettyName(i.name, i.count, i.unit),
     name: i.name,
+    kind: i.kind,
+    unit: i.unit,
+    measure: i.measure,
     category: i.category as Category,
     location: i.location as Location,
     amount: i.amount as Item['amount'],
@@ -84,120 +88,66 @@ export async function parseText(text: string): Promise<ParseOutcome> {
   return { drafts, source: 'model' }
 }
 
-/** Responses are cached on exactly what was asked, so idling in the kitchen
+/** Responses are cached on exactly what was asked, so reopening the book
  *  doesn't re-ask the same question and burn tokens. */
-const memo = new Map<string, unknown>()
+const memo = new Map<string, SuggestOutcome>()
 
-async function cached<T extends { source: string }>(key: string, fn: () => Promise<T>): Promise<T> {
-  if (memo.has(key)) return memo.get(key) as T
-  const value = await fn()
-  // a fallback answer is not worth remembering: fix the key and the next ask should work
-  if (value.source !== 'model') return value
-  memo.set(key, value)
-  if (memo.size > 40) memo.delete(memo.keys().next().value as string)
-  return value
-}
-
-export type Meal = {
-  name: string
-  ingredients: string[]
-  missing: string[]
-  steps: string[]
-  minutes: number
-  usesSoon: string[]
-}
-
-export type SuggestOutcome = { meals: Meal[]; line?: string; source: 'model' | 'local'; why?: string }
+export type SuggestOutcome = { recipes: Recipe[]; line?: string; source: 'model' | 'local'; why?: string }
 
 export function inventoryKey(items: Item[]): string {
   return items.map(i => `${i.name}:${i.amount}:${i.count ?? ''}`).sort().join('|')
 }
 
-export async function suggestMeals(items: Item[], dietary: string[]): Promise<SuggestOutcome> {
-  const key = `suggest:${inventoryKey(items)}:${dietary.join(',')}`
-  return cached(key, async () => {
-    const inventory = items
-      .map(i => `- ${i.displayName} (${i.name}, ${i.amount}${i.count ? `, ${i.count}` : ''})`)
-      .join('\n')
-    let why: string | undefined
-    try {
-      const res = await fetch('/api/suggest', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ inventory, dietary }),
-      })
-      const body = await res.json()
-      if (body?.ok) return { ...body.data, source: 'model' as const }
-      why = failureMessage(body?.reason, body?.detail)
-    } catch { why = failureMessage('unreachable') }
-    return { meals: localSuggest(items), source: 'local' as const, why }
-  })
+type ModelMeal = {
+  name: string; serves: number; minutes: number; kcal: number; protein: number
+  vegetarian: boolean; vegan: boolean; note?: string
+  ingredients: Array<{ item: string; qty: string; optional?: boolean }>
+  steps: string[]
 }
 
-export type Verdict = { name: string; ok: boolean; steps: string[]; minutes: number; line?: string }
-
-export async function judgeCraft(items: Item[]): Promise<{ verdict: Verdict; source: 'model' | 'local'; why?: string }> {
-  const key = `craft:${items.map(i => i.name).sort().join('+')}`
-  return cached(key, async () => {
-    let why: string | undefined
-    try {
-      const res = await fetch('/api/craft', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ ingredients: items.map(i => i.displayName) }),
-      })
-      const body = await res.json()
-      if (body?.ok) return { verdict: body.data as Verdict, source: 'model' as const }
-      why = failureMessage(body?.reason, body?.detail)
-    } catch { why = failureMessage('unreachable') }
-    return { verdict: localCraft(items), source: 'local' as const, why }
-  })
-}
-
-/* ---- the offline stand-ins ------------------------------------------- */
-
-const LOCAL_RECIPES: Array<{ name: string; needs: string[]; steps: string[]; minutes: number }> = [
-  { name: 'Cheese on toast', needs: ['bread', 'cheese'], steps: ['Toast the bread', 'Cheese on top', 'Under the grill'], minutes: 8 },
-  { name: 'Scrambled eggs', needs: ['egg'], steps: ['Beat the eggs', 'Low heat, keep stirring'], minutes: 7 },
-  { name: 'Omelette', needs: ['egg', 'cheese'], steps: ['Beat the eggs', 'Pour into a hot pan', 'Cheese, then fold'], minutes: 10 },
-  { name: 'Steak and greens', needs: ['steak', 'broccoli'], steps: ['Hot pan for the steak', 'Steam the greens', 'Rest the meat'], minutes: 20 },
-  { name: 'Buttered toast', needs: ['bread'], steps: ['Toast it', 'Butter it'], minutes: 4 },
-  { name: 'Roast chicken', needs: ['drumstick'], steps: ['Season', 'Oven until it runs clear'], minutes: 45 },
-]
-
-function localSuggest(items: Item[]): Meal[] {
-  const have = new Set(items.map(i => i.name))
-  return LOCAL_RECIPES
-    .map(r => ({
-      name: r.name,
-      ingredients: r.needs,
-      missing: r.needs.filter(n => ![...have].some(h => covers(h, n))),
-      steps: r.steps,
-      minutes: r.minutes,
-      usesSoon: [],
-    }))
-    .sort((a, b) => a.missing.length - b.missing.length)
-    .slice(0, 4)
-}
-
-function localCraft(items: Item[]): Verdict {
-  const names = items.map(i => i.name)
-  // most specific first, so bread and cheese is cheese on toast, not buttered toast
-  const hit = [...LOCAL_RECIPES]
-    .sort((a, b) => b.needs.length - a.needs.length)
-    .find(r => r.needs.every(n => names.some(h => covers(h, n))))
-  if (hit) return { name: hit.name, ok: true, steps: hit.steps, minutes: hit.minutes }
+export function fromModel(m: ModelMeal): Recipe {
+  const tags: Tag[] = []
+  if (m.vegetarian || m.vegan) tags.push('vegetarian')
+  if (m.vegan) tags.push('vegan')
   return {
-    name: names.length > 1 ? `${names.slice(0, 2).join(' and ')}, together` : names[0] ?? 'nothing',
-    ok: false,
-    steps: [],
-    minutes: 0,
-    line: 'Technically food. Technically.',
+    name: m.name,
+    serves: m.serves,
+    minutes: m.minutes,
+    kcal: m.kcal,
+    protein: m.protein,
+    tags,
+    ingredients: m.ingredients.map(x => ({ item: x.item.toLowerCase(), qty: x.qty, optional: x.optional || undefined })),
+    steps: m.steps,
+    source: 'basil',
+    note: m.note,
   }
 }
 
-/** Built-in recipes the kitchen can already make in full. Free and instant,
- *  which is why Basil's unprompted remarks use it instead of asking the model. */
-export function localMakings(items: Item[]): Meal[] {
-  return localSuggest(items).filter(m => !m.missing.length && m.ingredients.length > 1)
+/** Basil's own ideas for this exact kitchen. The built-in book always works
+ *  without this; these are extra. */
+export async function suggestMeals(items: Item[], dietary: string[]): Promise<SuggestOutcome> {
+  const key = `${inventoryKey(items)}:${dietary.join(',')}`
+  const hit = memo.get(key)
+  if (hit) return hit
+  const inventory = items
+    .map(i => `- ${i.displayName} (${i.name}${i.kind ? `, a ${i.kind}` : ''}, ${i.amount}${i.count ? `, ${i.count}${i.unit ? ` ${i.unit}` : ''}` : ''})`)
+    .join('\n')
+  let why: string | undefined
+  try {
+    const res = await fetch('/api/suggest', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ inventory, dietary }),
+    })
+    const body = await res.json()
+    if (body?.ok) {
+      const out: SuggestOutcome = { recipes: body.data.meals.map(fromModel), line: body.data.line, source: 'model' }
+      memo.set(key, out)
+      if (memo.size > 40) memo.delete(memo.keys().next().value as string)
+      return out
+    }
+    why = failureMessage(body?.reason, body?.detail)
+  } catch { why = failureMessage('unreachable') }
+  // a fallback answer is not remembered: fix the key and the next ask should work
+  return { recipes: [], source: 'local', why }
 }
