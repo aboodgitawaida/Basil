@@ -61,3 +61,9 @@ describe('book', () => {
     expect(book(s)[0].missing).toEqual([])
   })
 })
+
+it('a specific cheese counts for a recipe that wants cheese', () => {
+  let s = cook('Cheese on toast', [item({ name: 'bread' }), item({ name: 'cheese' })], [], 8)(state())
+  s = { ...s, items: [item({ name: 'bread' }), item({ name: 'cheddar' })] }
+  expect(book(s)[0].missing).toEqual([])
+})
