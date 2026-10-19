@@ -1,10 +1,14 @@
 import { WINDOW } from '../lib/room'
 import { SKY, arc, arcHeight, phaseAt } from '../lib/daylight'
 import type { Sky } from '../lib/weather'
+import { DRIFT, LAND, tint, type Season } from '../lib/seasons'
 import { Sprite } from './Sprite'
 import { Weather } from './Weather'
 
-type Props = { sky: Sky; now: Date }
+type Props = { sky: Sky; now: Date; season: Season }
+
+/** Sprinkles on the near field: flowers, fallen leaves, snow glints. */
+const DOTS: Array<[number, number]> = [[3, 2], [9, 5], [15, 1], [22, 4], [28, 2], [34, 6], [41, 3], [47, 5], [51, 1]]
 
 /** Fixed star positions inside the pane, in art pixels. */
 const STARS: Array<[number, number]> = [[4, 4], [14, 9], [23, 3], [33, 12], [41, 5], [49, 10], [8, 17], [28, 20], [45, 22], [18, 26]]
@@ -12,7 +16,7 @@ const STARS: Array<[number, number]> = [[4, 4], [14, 9], [23, 3], [33, 12], [41,
 /** The frame is a sprite with the pane knocked out. Behind it is the real
  *  time of day where you are: dawn, a blue noon, a gold evening, a night with
  *  stars and a moon. The light switch indoors has nothing to do with it. */
-export function Window({ sky, now }: Props) {
+export function Window({ sky, now, season }: Props) {
   const { x, y, w, paneH } = WINDOW
   const viewW = w - 10
   const viewH = paneH - 14
@@ -21,6 +25,8 @@ export function Window({ sky, now }: Props) {
   const { body, t } = arc(now)
   const night = phase === 'night' || phase === 'dusk'
   const overcast = sky !== 'clear'
+  const dim = night ? 0.45 : phase === 'dawn' || phase === 'evening' ? 0.82 : 1
+  const land = LAND[season]
 
   // the sun or moon travels left to right, high at midday; whole pixels only
   const size = body === 'sun' ? 8 : 6
@@ -51,12 +57,21 @@ export function Window({ sky, now }: Props) {
           </>
         )}
 
-        <i className={`win__far win__far--${phase}`} />
-        <i className={`win__near win__near--${phase}`} />
+        <i className="win__far" style={{ background: tint(land.far, dim) }} />
+        {/* a couple of trees on the far hill, dressed for the season */}
+        {[6, 46].map(tx => (
+          <i key={tx} className="win__tree" style={{ left: tx, background: tint(land.tree, dim) }}>
+            <i style={{ background: tint(land.trunk, dim) }} />
+          </i>
+        ))}
+        <i className="win__near" style={{ background: tint(land.near, dim) }} />
+        {DOTS.map(([dx, dy], n) => (
+          <i key={n} className="win__dot" style={{ left: dx, bottom: dy, background: tint(n % 2 ? land.dot2 : land.dot, dim) }} />
+        ))}
         {/* a lit window in the far house, after dark */}
         <i className="win__house" />
         {night && <i className="win__house-light" />}
-        <Weather sky={sky} w={viewW} h={viewH} />
+        <Weather sky={sky} w={viewW} h={viewH} drift={night ? 'none' : DRIFT[season]} />
       </div>
       <Sprite k="room/window" x={x} y={y} />
     </>

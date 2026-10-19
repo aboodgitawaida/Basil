@@ -15,6 +15,7 @@ import type { Spoken } from '../lib/basilSays'
 import type { Mood } from './Bubble'
 import { Bubble } from './Bubble'
 import { Nook } from './Nook'
+import type { Season } from '../lib/seasons'
 
 type Props = {
   fridgeOpen: boolean
@@ -33,6 +34,7 @@ type Props = {
   /** 0 is noon, 1 is the middle of the night, from the real clock */
   night: number
   sky: Sky
+  season: Season
   lampOn: boolean
   onLamp: () => void
   onAskBasil: () => void
@@ -58,7 +60,7 @@ const BEYOND = 2000
 
 export function Room({
   fridgeOpen, cupboardOpen, onFridge, onCupboard, items, itemHandlers, draggingId,
-  now, night, sky, lampOn, onLamp, onAskBasil, onHushBasil, basilSpeech, basilAwake, say,
+  now, night, sky, season, lampOn, onLamp, onAskBasil, onHushBasil, basilSpeech, basilAwake, say,
 }: Props) {
   const cat = spriteSize('cat/sleep-0')
   const fridgeFrame = useSteps(fridgeOpen, FRIDGE_FRAMES, 55)
@@ -76,10 +78,10 @@ export function Room({
       <div className="room__floor" style={{ left: -BEYOND, right: -BEYOND, top: FLOOR_Y, height: BEYOND }} />
       <div className="room__skirting" style={{ left: -BEYOND, right: -BEYOND, top: FLOOR_Y - 8 }} />
 
-      <Nook />
+      <Nook season={season} night={night} />
 
       <div className="room__kit" style={{ left: KIT_X, width: KIT_W, height: ROOM.h }}>
-        <Window sky={sky} now={now} />
+        <Window sky={sky} now={now} season={season} />
 
         <i className="room__cord" style={{ left: LAMP.cordX, top: CEILING_H, height: LAMP.shadeY - CEILING_H }} />
         <Sprite k="room/pendant" x={LAMP.x} y={LAMP.shadeY} />
