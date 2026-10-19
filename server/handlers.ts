@@ -1,8 +1,8 @@
 import { activeProvider, apiKey } from './config.js'
 import { COMPLETIONS, NoKeyError } from './providers.js'
 import {
-  CRAFT_SCHEMA, PARSE_SCHEMA, SUGGEST_SCHEMA,
-  looseJson, validateCraft, validateParse, validateSuggest,
+  PARSE_SCHEMA, SUGGEST_SCHEMA,
+  looseJson, validateParse, validateSuggest,
 } from './schemas.js'
 
 const VOICE = `You write for Basil, a pixel-art kitchen app. Calm and dry.
@@ -12,32 +12,42 @@ const PARSE_SYSTEM = `${VOICE}
 You turn what someone typed about groceries into structured items.
 Rules:
 - One entry per distinct item. "2 bags of milk" is one item with count 2.
-- displayName is what they typed for that item, unchanged.
-- name is the plain singular thing it is: "whole milk" -> "milk".
+- name is the plain, lower-case, singular thing it is, with no quantity or
+  container: "two eggs" -> "egg", "2 bags of whole milk" -> "milk",
+  "half a block of mature cheddar" -> "cheddar".
+- displayName is the label for the shelf: the thing itself in Title Case, with
+  no numbers, containers or amounts. Plural only for things counted one by one.
+  "two eggs" -> "Eggs", "2 bags of milk" -> "Milk", "a sourdough loaf" -> "Sourdough".
+- count is how many, for anything: "two eggs" -> 2, "2 bags of milk" -> 2,
+  "a dozen eggs" -> 12. Leave it out when no number was given.
+- unit is the container a count is counted in, singular: bag, bottle, block,
+  carton, tin, jar, pack, loaf. Leave it out for loose things like eggs.
+- measure is a size that is not a count, as typed: "2 litres", "500g".
+- kind is the general kind of food when name is a specific one: cheddar ->
+  "cheese", sirloin -> "beef", basmati -> "rice", salmon -> "fish". Leave it
+  out when name already is the general thing.
 - amount is how full it is: a new thing is "full", "half a block" is "half",
   "nearly out" is "low". Default to "full".
-- count only for things counted individually, like eggs or apples.
-- location: fridge for dairy, meat, open condiments; freezer for anything
-  frozen; cupboard for dry goods, tins and unopened bottles.
+- location: fridge for dairy, eggs, meat, fresh veg, open condiments; freezer
+  for anything frozen; cupboard for dry goods, bread, tins and unopened bottles.
 - shelfLifeDays is a rough guess for how long it keeps from today.
 Reply with JSON only.`
 
 const SUGGEST_SYSTEM = `${VOICE}
-You suggest meals from what is actually in the kitchen.
+You suggest real meals someone can cook from what is in their kitchen.
 Rules:
-- Prefer meals that use things going off soonest; list those in usesSoon.
-- ingredients must name things from the inventory you were given.
-- missing lists anything else the meal needs that they do not have.
-- steps are rough and short, four or five at most.
-- minutes is a rough total.
+- Up to 6 meals. Each must use mainly things from the inventory. Assume salt,
+  pepper, water and basic dried spices are always there.
+- ingredients lists everything the meal needs with a quantity (qty), e.g.
+  {"item":"egg","qty":"3 eggs"}. item is a plain lower-case singular food
+  name. Mark extras that are nice but not needed as optional.
+- Prefer meals that use things going off soonest.
+- steps are a full recipe a beginner could follow: 4 to 8 clear steps with
+  heat levels and times.
+- serves is portions; kcal and protein (grams) are realistic estimates per
+  serving. vegetarian/vegan must be accurate.
+- note is one short line on why this one, in Basil's voice.
 - line is one short sentence in Basil's voice about the best option.
-Reply with JSON only.`
-
-const CRAFT_SYSTEM = `${VOICE}
-You judge what a specific set of ingredients makes when cooked together.
-Improvise: it does not have to be a known recipe. If the combination makes
-nothing worth eating, set ok to false and give it a dry honest name.
-steps are rough and short. line is one short sentence in Basil's voice.
 Reply with JSON only.`
 
 export type AiResult<T> =
@@ -75,9 +85,6 @@ export const suggestMeals = (inventory: string, dietary: string[]) =>
     SUGGEST_SCHEMA,
     validateSuggest,
   )
-
-export const judgeCraft = (ingredients: string[]) =>
-  run(CRAFT_SYSTEM, `Ingredients on the board:\n${ingredients.join('\n')}`, CRAFT_SCHEMA, validateCraft)
 
 /** What the client is allowed to know about the setup: whether it is worth
  *  asking at all. Never the key. */

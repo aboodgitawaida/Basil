@@ -1,4 +1,4 @@
-import { localMakings, type Meal } from './ai'
+import { cookable } from './recipes'
 import { daysLeft, isGoingOff, type Item } from './schema'
 
 /** Basil's copy. Smug, sleepy, dry: he is right and he is not going to
@@ -41,38 +41,25 @@ export function fridgeRemark(items: Item[], now = new Date()): Remark | null {
     }
   }
 
-  const make = localMakings(items)[0]
+  const make = cookable(items, undefined, 0).find(m => m.uses.filter(u => u.item).length > 1)
   if (make) {
-    return { key: `make:${make.name}`, text: `You could make ${make.name.toLowerCase()}. It's all in there. Just saying.` }
+    const name = make.recipe.name
+    return { key: `make:${name}`, text: `You could make ${name.toLowerCase()}. It's all in there. Just saying.` }
   }
   return null
 }
 
-export const THINKING = 'Mm. Hold on.'
-export const EMPTY = 'Nothing in there. Impressive. Go shopping, I will be here.'
-export const NOTHING = 'Nothing I would put my name to. Shop. Then wake me.'
+/** What he says when the cookbook opens, by how much the kitchen can do. */
+export function cookbookLine(ready: number, almost: number, empty: boolean): string {
+  if (empty) return 'Nothing in there. Impressive. Go shopping, I will be here.'
+  if (ready === 0 && almost === 0) return 'Nothing I would put my name to. Shop. Then wake me.'
+  if (ready === 0) return 'Close. A thing or two short. Story of your life.'
+  if (ready === 1) return 'One thing you can make. I would make it.'
+  if (ready > 8) return `${ready} things. You are spoilt. Pick one.`
+  return `${ready} things you can make right now. I have opinions.`
+}
 
 export type Spoken = {
   title: string
   detail?: string
-  quip?: string
-  /** why the model failed, when it did */
-  note?: string
-}
-
-/** Best first: fewest things missing, then the ones using food that is going. */
-export function ranked(meals: Meal[]): Meal[] {
-  return [...meals].sort(
-    (a, b) => a.missing.length - b.missing.length || b.usesSoon.length - a.usesSoon.length,
-  )
-}
-
-export function speakMeal(meal: Meal, index: number, line?: string, why?: string): Spoken {
-  return {
-    title: meal.name,
-    detail: meal.missing.length ? `short of ${meal.missing.join(', ')}` : `${meal.minutes} min`,
-    // the model's line is about its best option, so only the first meal gets it
-    quip: index === 0 ? line : undefined,
-    note: why,
-  }
 }

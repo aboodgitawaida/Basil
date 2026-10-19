@@ -3,7 +3,12 @@
  *  That ruler is what keeps objects honest: a 90cm counter is 90px tall, the
  *  fridge is 166px, a wall clock is 26px, a milk carton is 28px. Objects are
  *  sized by what they are, not by whatever their source frame happened to be. */
-export const ROOM = { w: 192, h: 240 } as const
+export const ROOM = { w: 296, h: 240 } as const
+
+/** The kitchen run (pantry, counter, fridge) is authored in its own 192cm
+ *  space and placed this far in; the dining nook fills the wall to its left. */
+export const KIT_X = 104
+export const KIT_W = 192
 
 /** Floor line. Furniture stands on it; below is foreground floor. */
 export const FLOOR_Y = 208
@@ -42,10 +47,6 @@ export const PANTRY_BAYS = {
   revealed: [Infinity, 42, 28, 18],
 } as const
 
-/** The crafting board, on the worktop to the right of where the cat sleeps.
- *  Three cells of 17cm is what the counter has room for. */
-export const CRAFT = { x: 52, cell: 17, cols: 3, rows: 3, bottom: 208 - 90 } as const
-
 /** Surface clutter, kept to one group with space around it.
  *  [sprite, x] in centimetres; everything stands on the worktop. */
 export const PROPS: Array<[string, number]> = [
@@ -54,8 +55,41 @@ export const PROPS: Array<[string, number]> = [
   ['food/ketchup', 96],
 ]
 
+/** The dining nook, left of the kitchen. Shelf values are the surface
+ *  things stand on, measured off the cupboard sprite. */
+export const NOOK = {
+  /** surfaces are offsets from the top of the cupboard sprite */
+  shelf: { x: 56, y: 36, surfaces: [20, 38, 57] },
+  table: { x: 8, w: 78, h: 30 },
+  lamp: { x: 26, cordX: 37, shadeY: 40 },
+  picture: { x: 8, y: 52, w: 20, h: 24 },
+} as const
+
+export type Layout = { scale: number; left: number; top: number }
+
 /** Largest whole-number scale that fits the viewport, never below 2.
- *  Fractional scales are what make pixel art look muddy, so there aren't any. */
+ *  Fractional scales are what make pixel art look muddy, so there aren't any.
+ *
+ *  `reserve` is the height of the bar along the bottom. The floor line must
+ *  stay above it so the fridge and cupboards are never covered; the strip of
+ *  floor in front and the ceiling above may run under the menus, because
+ *  both carry on past the room's edges anyway. When the whole room is too
+ *  wide (a phone) the kitchen part is centred and the nook runs off the left. */
+export function layout(vw: number, vh: number, reserve = 0): Layout {
+  // what must be on screen: from just under the ceiling to the floor line
+  const needH = FLOOR_Y - CEILING_H
+  const room = Math.floor(Math.min(vw / ROOM.w, (vh - reserve) / needH))
+  const scale = room >= 2 ? room : Math.max(2, Math.floor(Math.min(vw / KIT_W, (vh - reserve) / needH)))
+  const focus = ROOM.w * scale <= vw ? ROOM.w / 2 : KIT_X + KIT_W / 2
+  const centred = Math.round((vh - ROOM.h * scale) / 2)
+  const floorLimit = vh - reserve - 6 - FLOOR_Y * scale
+  return {
+    scale,
+    left: Math.round(vw / 2 - focus * scale),
+    top: Math.max(-CEILING_H * scale, Math.min(centred, floorLimit)),
+  }
+}
+
 export function fitScale(vw: number, vh: number): number {
-  return Math.max(2, Math.floor(Math.min(vw / ROOM.w, vh / ROOM.h)))
+  return layout(vw, vh).scale
 }

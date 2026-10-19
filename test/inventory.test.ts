@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   SHELVES, SLOTS_PER_SHELF, addItems, freeSlot, materialise, moveItem,
-  removeItem, setAmount, spendItems, topQuickAdd,
+  removeItem, setAmount, setCount, spend, spendItems, topQuickAdd,
 } from '../src/lib/inventory'
 import { item, state } from './helpers'
 
@@ -33,7 +33,9 @@ describe('materialise', () => {
     const it_ = materialise({ displayName: '  2 bags of milk ' }, [])
     expect(it_).toMatchObject({
       name: 'milk',
-      displayName: '2 bags of milk',
+      displayName: 'Milk',
+      count: 2,
+      unit: 'bag',
       category: 'dairy',
       location: 'fridge',
       amount: 'full',
@@ -51,12 +53,32 @@ describe('materialise', () => {
 })
 
 describe('addItems', () => {
-  it('gives each new item its own slot and counts it for quick-add', () => {
-    const s = addItems([{ displayName: 'milk' }, { displayName: 'cheese' }, { displayName: 'milk' }])(state())
+  it('gives each new thing its own slot and counts it for quick-add', () => {
+    const s = addItems([{ displayName: 'milk' }, { displayName: 'cheese' }, { displayName: 'bread' }])(state())
     expect(s.items).toHaveLength(3)
     const slots = s.items.map(i => `${i.location}:${i.shelf}:${i.position}`)
     expect(new Set(slots).size).toBe(3)
-    expect(s.quickAdd).toEqual({ milk: 2, cheese: 1 })
+    expect(s.quickAdd).toEqual({ milk: 1, cheese: 1, bread: 1 })
+  })
+
+  it('tops up what is already there: six eggs and two more is eight eggs', () => {
+    let s = addItems([{ displayName: 'six eggs' }])(state())
+    s = addItems([{ displayName: 'two eggs' }])(s)
+    expect(s.items).toHaveLength(1)
+    expect(s.items[0]).toMatchObject({ name: 'egg', displayName: 'Eggs', count: 8 })
+    expect(s.quickAdd).toEqual({ egg: 2 })
+  })
+
+  it('a bare one plus one more is two', () => {
+    let s = addItems([{ displayName: 'milk' }])(state())
+    s = addItems([{ displayName: 'milk' }])(s)
+    expect(s.items).toHaveLength(1)
+    expect(s.items[0].count).toBe(2)
+  })
+
+  it('cleans a label that still has its quantity in it', () => {
+    const it_ = materialise({ displayName: 'two eggs', name: 'egg', count: 2 }, [])
+    expect(it_.displayName).toBe('Eggs')
   })
 
   it('does not change the state it was given', () => {
@@ -101,6 +123,20 @@ describe('spendItems', () => {
       [half.id, 'low'],
       [untouched.id, 'low'],
     ])
+  })
+
+  it('setCount relabels, and zero removes', () => {
+    const egg = item({ name: 'egg', displayName: 'Egg', count: 1 })
+    const s = setCount(egg.id, 3)(state({ items: [egg] }))
+    expect(s.items[0]).toMatchObject({ count: 3, displayName: 'Eggs' })
+    expect(setCount(egg.id, 0)(s).items).toEqual([])
+  })
+
+  it('spend takes the number asked for, and removes what runs out', () => {
+    const eggs = item({ name: 'egg', displayName: 'Eggs', count: 3 })
+    const after = spend([{ id: eggs.id, count: 2 }])(state({ items: [eggs] }))
+    expect(after.items[0]).toMatchObject({ count: 1, displayName: 'Egg' })
+    expect(spend([{ id: eggs.id, count: 3 }])(state({ items: [eggs] })).items).toEqual([])
   })
 
   it('uses up counted things one at a time', () => {
