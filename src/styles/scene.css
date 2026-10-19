@@ -326,3 +326,36 @@
 .lights__bulb--1 { background: #e0645a; animation-delay: 450ms; }
 .lights__bulb--2 { background: #86d07a; animation-delay: 900ms; }
 .lights__bulb--3 { background: #7fb6e3; animation-delay: 1350ms; }
+
+/* ---- things you can click: a soft yellow outline that breathes, brighter
+   on hover. Drawn as four 1px drop-shadows so it follows the sprite's own
+   shape, not its box. ---- */
+.interact {
+  --glow: 255 214 90;
+  animation: interact 3200ms steps(8) infinite;
+}
+@keyframes interact {
+  0%, 100% { filter: drop-shadow(1px 0 0 rgb(var(--glow) / 0.15)) drop-shadow(-1px 0 0 rgb(var(--glow) / 0.15)) drop-shadow(0 1px 0 rgb(var(--glow) / 0.15)) drop-shadow(0 -1px 0 rgb(var(--glow) / 0.15)); }
+  50%      { filter: drop-shadow(1px 0 0 rgb(var(--glow) / 0.55)) drop-shadow(-1px 0 0 rgb(var(--glow) / 0.55)) drop-shadow(0 1px 0 rgb(var(--glow) / 0.55)) drop-shadow(0 -1px 0 rgb(var(--glow) / 0.55)); }
+}
+.interact:hover, .interact:focus-visible {
+  animation: none;
+  outline: none;
+  filter: brightness(1.08) drop-shadow(1px 0 0 rgb(var(--glow))) drop-shadow(-1px 0 0 rgb(var(--glow))) drop-shadow(0 1px 0 rgb(var(--glow))) drop-shadow(0 -1px 0 rgb(var(--glow)));
+}
+
+/* ---- stocked shelves ---- */
+.stock { position: absolute; inset: 0; pointer-events: none; }
+.stock > * { pointer-events: auto; }
+/* the clear front of a door bin, in front of the bottles' feet */
+.bin { position: absolute; height: 4px; pointer-events: none;
+  background: rgb(214 236 232 / 0.85);
+  box-shadow: inset 0 1px 0 #f4fbf9, inset 0 -1px 0 var(--blue-light), 0 0 0 1px rgb(29 22 32 / 0.5); }
+.more { position: absolute; padding: 1px 2px; font: 12px/1 'TinyRPG', monospace; color: #fbe2b0;
+  background: #8f431b; border: 1px solid #3b1d0e; z-index: 2; }
+.more:hover { background: #c56b2e; }
+
+/* ---- clock hands ---- */
+.clock__hand { position: absolute; width: 1px; height: 1px; background: var(--ink); pointer-events: none; }
+.clock__hand--hour { background: var(--wood-darkest); box-shadow: 1px 0 0 var(--wood-darkest); }
+.clock__hub { position: absolute; width: 2px; height: 2px; background: var(--red); pointer-events: none; }
