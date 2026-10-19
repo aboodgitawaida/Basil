@@ -63,10 +63,27 @@ export type Settings = {
   lon?: number
 }
 
+/** Something to buy. Ticking it off puts it in the kitchen. */
+export type ShopItem = {
+  id: string
+  /** normalised, for matching: "egg" */
+  name: string
+  /** what the list shows: "Eggs" */
+  label: string
+  count?: number
+  unit?: string
+  /** why it is on the list: a recipe's name, or "ran out" */
+  note?: string
+  /** bought and put away */
+  done?: boolean
+  addedAt: string
+}
+
 export type AppState = {
   version: number
   items: Item[]
   history: CookedMeal[]
+  shopping: ShopItem[]
   settings: Settings
   /** name -> how many times it has been added, for quick-add buttons */
   quickAdd: Record<string, number>
@@ -78,6 +95,7 @@ export const EMPTY_STATE: AppState = {
   version: SCHEMA_VERSION,
   items: [],
   history: [],
+  shopping: [],
   settings: { dietary: [], sound: false, music: false, lamp: null, weather: true },
   quickAdd: {},
 }

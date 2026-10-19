@@ -9,7 +9,9 @@ import { useStore } from './lib/useStore'
 import { aiStatus, parseText, type ParseOutcome } from './lib/ai'
 import { useBasil } from './lib/useBasil'
 import { ParsePreview } from './ui/ParsePreview'
-import { addItems, moveItem, removeItem, setAmount, setCount, topQuickAdd } from './lib/inventory'
+import { addItems, allGone, moveItem, setAmount, setCount, topQuickAdd } from './lib/inventory'
+import { addToList, clearTicked, missingFor, readList, tick, toBuy, unlist } from './lib/shopping'
+import { ShoppingList } from './ui/ShoppingList'
 import { useItemDrag, type DropTarget } from './lib/useItemDrag'
 import { cook } from './lib/craft'
 import type { Filter, Match } from './lib/recipes'
@@ -23,11 +25,10 @@ import { nightLevel } from './lib/daylight'
 import { seasonAt, seasonOverride } from './lib/seasons'
 import { fetchSky, type Sky } from './lib/weather'
 import { sound } from './lib/sound'
-import type { Mood } from './scene/Bubble'
 import { spriteSize, spriteUrl } from './lib/sprites'
 import { prettyName, type Item, type Location, type Settings as SettingsT } from './lib/schema'
 
-type Overlay = 'settings' | 'credits' | 'cookbook' | 'pantry' | 'menu' | null
+type Overlay = 'settings' | 'credits' | 'cookbook' | 'pantry' | 'shopping' | 'menu' | null
 
 const useNow = () => {
   const [now, setNow] = useState(() => new Date())
@@ -50,7 +51,7 @@ export function App() {
   const [busy, setBusy] = useState(false)
   const [aiReady, setAiReady] = useState(false)
   const [sky, setSky] = useState<Sky>('clear')
-  const [say, setSay] = useState<Mood | null>(null)
+  const [happy, setHappy] = useState(false)
   const [filters, setFilters] = useState<Filter[] | null>(null)
   const [barH, setBarH] = useState(120)
   const bar = useRef<HTMLDivElement>(null)
@@ -120,16 +121,12 @@ export function App() {
 
   const pickedItem = picked ? state.items.find(i => i.id === picked) : undefined
 
-  const flash = (m: Mood, ms = 2600) => {
-    setSay(m)
-    window.setTimeout(() => setSay(null), ms)
-  }
-
   const doCook = useCallback((m: Match) => {
     sound.play('cook')
     apply(`Cooked ${m.recipe.name.toLowerCase()}.`, cook(m))
     setOverlay(null)
-    flash('love')
+    setHappy(true)
+    window.setTimeout(() => setHappy(false), 4500)
     basil.say({ title: `${m.recipe.name}. Acceptable. I'll have the leftovers.` }, 5000)
   }, [apply, basil])
 
@@ -185,8 +182,7 @@ export function App() {
             onAskBasil={() => { sound.play('place', 0.35); basil.hush(); setOverlay('cookbook') }}
             onHushBasil={basil.hush}
             basilSpeech={basil.speech}
-            basilAwake={overlay === 'cookbook'}
-            say={say}
+            basilMode={happy ? 'happy' : overlay === 'cookbook' ? 'attentive' : fridgeOpen || freezerOpen ? 'alert' : 'sleep'}
           />
         </div>
       </div>
@@ -208,6 +204,7 @@ export function App() {
         <nav className="hud__menu">
           <button className="sv-btn" onClick={() => setOverlay('menu')}>menu</button>
           <button className="sv-btn" onClick={() => setOverlay('pantry')}>kitchen{state.items.length ? ` (${state.items.length})` : ''}</button>
+          <button className="sv-btn" onClick={() => setOverlay('shopping')}>list{toBuy(state.shopping).length ? ` (${toBuy(state.shopping).length})` : ''}</button>
           <button className="sv-btn sv-btn--go" onClick={() => setOverlay('cookbook')}>cookbook</button>
         </nav>
         <Clock now={now} sky={sky} season={season} />
@@ -258,7 +255,7 @@ export function App() {
             if (n <= 0) setPicked(null)
           }}
           onMove={(l: Location) => apply(`Moved ${pickedItem.displayName} to the ${l}.`, moveItem(pickedItem.id, l))}
-          onRemove={() => { apply(`${pickedItem.displayName} is gone.`, removeItem(pickedItem.id)); setPicked(null) }}
+          onRemove={() => { apply(`${pickedItem.displayName} is gone. It's on your list.`, allGone(pickedItem.id)); setPicked(null) }}
         />
       )}
 
@@ -271,6 +268,27 @@ export function App() {
           filters={cookFilters}
           onFilters={setFilters}
           onCook={doCook}
+          listed={new Set(toBuy(state.shopping).map(x => x.name))}
+          onList={m => {
+            const add = missingFor(m)
+            sound.play('place')
+            apply(`Added ${add.length === 1 ? add[0].name : `${add.length} things`} to your list.`, addToList(add, 'ensure'))
+          }}
+          onClose={() => setOverlay(null)}
+        />
+      )}
+
+      {overlay === 'shopping' && (
+        <ShoppingList
+          list={state.shopping}
+          onAdd={text => apply('Added to your list.', addToList(readList(text)))}
+          onTick={id => {
+            const it = state.shopping.find(x => x.id === id)
+            sound.play('place')
+            apply(`Put ${it?.label ?? 'it'} away.`, tick(id))
+          }}
+          onRemove={id => apply('Taken off your list.', unlist(id))}
+          onClearTicked={() => apply('Cleared the ticked things.', clearTicked)}
           onClose={() => setOverlay(null)}
         />
       )}
