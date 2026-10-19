@@ -52,8 +52,8 @@ export function Window({ sky, now, season }: Props) {
 
         {!night && (
           <>
-            <Sprite k="sky/cloud-2" x={3} y={8} className="win__cloud win__cloud--a" />
-            <Sprite k="sky/cloud-4" x={30} y={2} className="win__cloud win__cloud--b" />
+            <Sprite k="sky/cloud-2" x={0} y={8} className="win__cloud win__cloud--a" />
+            <Sprite k="sky/cloud-4" x={0} y={2} className="win__cloud win__cloud--b" />
           </>
         )}
 
