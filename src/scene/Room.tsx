@@ -14,8 +14,7 @@ import type { Item } from '../lib/schema'
 import type { Sky } from '../lib/weather'
 import { Basil } from './Basil'
 import type { Spoken } from '../lib/basilSays'
-import type { Mood } from './Bubble'
-import { Bubble } from './Bubble'
+import type { BasilMode } from '../lib/useBasilPose'
 import { Nook } from './Nook'
 import type { Season } from '../lib/seasons'
 
@@ -46,9 +45,7 @@ type Props = {
   onAskBasil: () => void
   onHushBasil: () => void
   basilSpeech: Spoken | null
-  /** the cookbook is open, so he is awake */
-  basilAwake: boolean
-  say: Mood | null
+  basilMode: BasilMode
 }
 
 /** Contact shadow. The light is up and to the left, so shadows fall right. */
@@ -66,7 +63,7 @@ const BEYOND = 2000
 
 export function Room({
   fridgeOpen, freezerOpen, cupboardOpen, onFridge, onFreezer, onCupboard, onMore, items, itemHandlers, draggingId,
-  now, night, sky, season, lampOn, onLamp, onAskBasil, onHushBasil, basilSpeech, basilAwake, say,
+  now, night, sky, season, lampOn, onLamp, onAskBasil, onHushBasil, basilSpeech, basilMode,
 }: Props) {
   const cat = spriteSize('cat/sleep-0')
   const fridgeFrame = useSteps(fridgeOpen, FRIDGE_FRAMES, 55)
@@ -114,7 +111,7 @@ export function Room({
         <i className="room__worktop" style={{ left: COUNTER.x, top: COUNTER_TOP, width: COUNTER.w * COUNTER.units }} />
 
         <Shadow x={CAT.x + 4} w={cat.w - 10} y={COUNTER_TOP} soft />
-        <Basil awake={fridgeOpen || freezerOpen || basilAwake} onAsk={onAskBasil} onHush={onHushBasil} speech={basilSpeech} />
+        <Basil mode={basilMode} onAsk={onAskBasil} onHush={onHushBasil} speech={basilSpeech} />
 
         {PROPS.map(([k, x]) => (
           <span key={k}>
@@ -133,7 +130,6 @@ export function Room({
           {...itemHandlers}
         />
 
-        {say && <Bubble mood={say} x={CAT.x + 14} y={COUNTER_TOP - cat.h - 26} />}
       </div>
 
       {/* lighting last, over everything, so it tints the whole room at once */}

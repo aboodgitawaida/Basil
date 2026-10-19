@@ -115,7 +115,7 @@ function relabel(i: Item, count: number): string {
 
 /** Set how many there are. None left means it is gone. */
 export const setCount = (id: string, count: number) => (s: AppState): AppState => {
-  if (count <= 0) return removeItem(id)(s)
+  if (count <= 0) return allGone(id)(s)
   return {
     ...s,
     items: s.items.map(i => (i.id === id
@@ -126,6 +126,22 @@ export const setCount = (id: string, count: number) => (s: AppState): AppState =
 
 export const removeItem = (id: string) => (s: AppState): AppState =>
   ({ ...s, items: s.items.filter(i => i.id !== id) })
+
+/** Things that have run out go on the shopping list, once. */
+function remember(s: AppState, gone: Item[]): AppState {
+  const shopping = [...(s.shopping ?? [])]
+  for (const i of gone) {
+    if (shopping.some(x => !x.done && x.name === i.name)) continue
+    shopping.push({ id: newId(), name: i.name, label: prettyName(i.name), unit: i.unit, note: 'ran out', addedAt: new Date().toISOString() })
+  }
+  return { ...s, shopping }
+}
+
+/** All gone: off the shelf and onto the shopping list. */
+export const allGone = (id: string) => (s: AppState): AppState => {
+  const gone = s.items.filter(i => i.id === id)
+  return remember(removeItem(id)(s), gone)
+}
 
 export const setAmount = (id: string, amount: Item['amount']) => (s: AppState): AppState =>
   ({ ...s, items: s.items.map(i => (i.id === id ? { ...i, amount } : i)) })
@@ -151,7 +167,13 @@ export const spendItems = (ids: string[]) => spend(ids.map(id => ({ id, count: 1
 
 /** Spend a number of each: a recipe that wants two eggs takes two. Loose
  *  things (milk, cheese) step down one amount however many were asked for. */
-export const spend = (uses: Array<{ id: string; count: number }>) => (s: AppState): AppState => ({
+export const spend = (uses: Array<{ id: string; count: number }>) => (s: AppState): AppState => {
+  const after = spendOnly(uses)(s)
+  const gone = s.items.filter(i => !after.items.some(a => a.id === i.id))
+  return remember(after, gone)
+}
+
+const spendOnly = (uses: Array<{ id: string; count: number }>) => (s: AppState): AppState => ({
   ...s,
   items: s.items
     .map(i => {
