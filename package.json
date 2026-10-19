@@ -8,7 +8,7 @@
     "build": "tsc -b && tsc -p tsconfig.server.json && vite build",
     "preview": "vite preview",
     "start": "tsx server/index.ts",
-    "assets": "python3 -I tools/extract.py && python3 -I tools/doors.py",
+    "assets": "python3 -I tools/extract.py && python3 -I tools/doors.py && python3 -I tools/basil.py",
     "typecheck": "tsc -b && tsc -p tsconfig.server.json && tsc -p tsconfig.test.json",
     "test": "vitest run",
     "test:watch": "vitest"

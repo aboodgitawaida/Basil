@@ -18,6 +18,10 @@ type Props = {
   filters: Filter[]
   onFilters: (f: Filter[]) => void
   onCook: (m: Match) => void
+  /** add what a recipe is missing to the shopping list */
+  onList: (m: Match) => void
+  /** names already on the shopping list */
+  listed: Set<string>
   onClose: () => void
 }
 
@@ -31,9 +35,28 @@ const need = (m: Match) =>
 const saysWhat = (qty: string, item: string) =>
   item.split('|').some(w => qty.toLowerCase().includes(w.trim().toLowerCase()))
 
-function Card({ m, onOpen }: { m: Match; onOpen: () => void }) {
+/** Whether everything a recipe is short of is already on the list. */
+const allListed = (m: Match, listed: Set<string>) =>
+  m.missing.every(i => listed.has(i.item.split('|')[0].trim()))
+
+function ListButton({ m, listed, onList, small }: { m: Match; listed: Set<string>; onList: (m: Match) => void; small?: boolean }) {
+  const done = allListed(m, listed)
+  return (
+    <button
+      className={`sv-btn${done ? ' sv-btn--quiet' : ''}${small ? ' sv-btn--small cook__list' : ''}`}
+      onClick={e => { e.stopPropagation(); if (!done) onList(m) }}
+      disabled={done}
+      title={done ? 'Already on your shopping list' : `Add ${need(m).join(', ')} to your shopping list`}
+    >
+      {done ? 'on your list' : small ? '+ list' : `add ${m.missing.length === 1 ? 'it' : `all ${m.missing.length}`} to my list`}
+    </button>
+  )
+}
+
+function Card({ m, onOpen, listed, onList }: { m: Match; onOpen: () => void; listed: Set<string>; onList: (m: Match) => void }) {
   const r = m.recipe
   return (
+    <div className="cook__cardwrap">
     <button className={`cook__card${m.missing.length ? ' cook__card--short' : ''}`} onClick={onOpen}>
       <span className="cook__dish"><Zoom k={dishSprite(r.name)} scale={2} max={66} /></span>
       <span>
@@ -47,10 +70,12 @@ function Card({ m, onOpen }: { m: Match; onOpen: () => void }) {
         {m.missing.length > 0 && <span className="cook__card-need" style={{ display: 'block' }}>need: {need(m).join(', ')}</span>}
       </span>
     </button>
+    {m.missing.length > 0 && <ListButton m={m} listed={listed} onList={onList} small />}
+    </div>
   )
 }
 
-function Detail({ m, onBack, onCook }: { m: Match; onBack: () => void; onCook: () => void }) {
+function Detail({ m, onBack, onCook, listed, onList }: { m: Match; onBack: () => void; onCook: () => void; listed: Set<string>; onList: (m: Match) => void }) {
   const r = m.recipe
   return (
     <div>
@@ -112,10 +137,9 @@ function Detail({ m, onBack, onCook }: { m: Match; onBack: () => void; onCook: (
 
       <div className="sv-modal__foot sv-modal__foot--between" style={{ margin: '24px -27px -24px' }}>
         <button className="sv-btn sv-btn--quiet" onClick={onBack}>&lt; back</button>
-        <button className="sv-btn sv-btn--go" onClick={onCook} disabled={m.missing.length > 0}
-          title={m.missing.length ? 'You are short of something' : 'Uses up what it needs from the kitchen'}>
-          {m.missing.length ? 'missing ingredients' : 'cook it'}
-        </button>
+        {m.missing.length > 0
+          ? <ListButton m={m} listed={listed} onList={onList} />
+          : <button className="sv-btn sv-btn--go" onClick={onCook} title="Uses up what it needs from the kitchen">cook it</button>}
       </div>
     </div>
   )
@@ -124,7 +148,7 @@ function Detail({ m, onBack, onCook }: { m: Match; onBack: () => void; onCook: (
 /** Basil's cookbook: everything the kitchen can make, filtered by what you
  *  are after, with the full recipe a click away. The built-in book works with
  *  no model at all; with one, Basil adds a few ideas of his own. */
-export function Cookbook({ items, history, dietary, aiReady, filters, onFilters, onCook, onClose }: Props) {
+export function Cookbook({ items, history, dietary, aiReady, filters, onFilters, onCook, onList, listed, onClose }: Props) {
   const [open, setOpen] = useState<string | null>(null)
   const [extra, setExtra] = useState<Recipe[]>([])
   const [asking, setAsking] = useState(false)
@@ -165,7 +189,7 @@ export function Cookbook({ items, history, dietary, aiReady, filters, onFilters,
   return (
     <Modal title={opened ? 'Recipe' : "Basil's Cookbook"} onClose={onClose} size="wide">
       {opened ? (
-        <Detail m={opened} onBack={() => setOpen(null)} onCook={() => onCook(opened)} />
+        <Detail m={opened} onBack={() => setOpen(null)} onCook={() => onCook(opened)} listed={listed} onList={onList} />
       ) : (
         <>
           <div className="cook__head">
@@ -184,7 +208,7 @@ export function Cookbook({ items, history, dietary, aiReady, filters, onFilters,
 
           <div className="sv-section"><span className="sv-h2">Ready to cook</span><span className="sv-dim">{ready.length}</span></div>
           {ready.length ? (
-            <div className="cook__cards">{ready.map(m => <Card key={m.recipe.name} m={m} onOpen={() => setOpen(m.recipe.name)} />)}</div>
+            <div className="cook__cards">{ready.map(m => <Card key={m.recipe.name} m={m} onOpen={() => setOpen(m.recipe.name)} listed={listed} onList={onList} />)}</div>
           ) : (
             <p className="sv-dim">
               {items.length === 0 ? 'The kitchen is empty. Type what you bought in the bar at the bottom.'
@@ -196,7 +220,7 @@ export function Cookbook({ items, history, dietary, aiReady, filters, onFilters,
           {showShort && short.length > 0 && (
             <>
               <div className="sv-section"><span className="sv-h2">Nearly there</span><span className="sv-dim">a thing or two short</span></div>
-              <div className="cook__cards">{short.map(m => <Card key={m.recipe.name} m={m} onOpen={() => setOpen(m.recipe.name)} />)}</div>
+              <div className="cook__cards">{short.map(m => <Card key={m.recipe.name} m={m} onOpen={() => setOpen(m.recipe.name)} listed={listed} onList={onList} />)}</div>
             </>
           )}
 
@@ -208,7 +232,7 @@ export function Cookbook({ items, history, dietary, aiReady, filters, onFilters,
               </div>
               {why && !asking && <p className="sv-dim">{why}</p>}
               {ideasShown.length > 0 && (
-                <div className="cook__cards">{ideasShown.map(m => <Card key={m.recipe.name} m={m} onOpen={() => setOpen(m.recipe.name)} />)}</div>
+                <div className="cook__cards">{ideasShown.map(m => <Card key={m.recipe.name} m={m} onOpen={() => setOpen(m.recipe.name)} listed={listed} onList={onList} />)}</div>
               )}
               {!asking && !why && ideas.length > 0 && ideasShown.length === 0 && <p className="sv-dim">None of his fit those boxes.</p>}
             </>

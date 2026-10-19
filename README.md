@@ -116,6 +116,13 @@ the build on every push and pull request.
       (bottles in the door, tall things on the tall shelf, never on top of
       each other; anything that doesn't fit shows as "+N"). Everything you can
       click glows a soft yellow. The wall clock tells the real time.
+- [x] **9 — Shopping list and a livelier cat.** A list you tick off in the
+      shop; ticked things go straight into the kitchen. Recipes that are a
+      thing or two short add what's missing in one click, and anything that
+      runs out adds itself. Basil wakes, stretches and sits up when the
+      cookbook opens, opens an eye for the fridge, and hops about when you
+      cook. His awake poses are drawn from his sleeping sprite by
+      `tools/basil.py` (the pack only has him asleep).
 
 ## The art rules
 

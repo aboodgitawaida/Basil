@@ -1,53 +1,58 @@
 import { CAT, COUNTER_TOP, ROOM } from '../lib/room'
 import { spriteSize } from '../lib/sprites'
-import { useLoop } from '../lib/useLoop'
+import { useBasilPose, type BasilMode } from '../lib/useBasilPose'
 import { Sprite } from './Sprite'
 import { Bubble } from './Bubble'
 import type { Spoken } from '../lib/basilSays'
 
 type Props = {
-  /** he stirs when the fridge opens or the cookbook is up */
-  awake: boolean
+  /** sleep, alert (the fridge opened), attentive (the cookbook is up), happy (you cooked) */
+  mode: BasilMode
   /** clicking him opens the cookbook */
   onAsk: () => void
   onHush: () => void
   speech: Spoken | null
 }
 
-/** Basil, asleep on the worktop. Click him for the cookbook; open the fridge
- *  and he may have a remark. Otherwise he breathes and drops the odd z. */
-export function Basil({ awake, onAsk, onHush, speech }: Props) {
-  const frame = useLoop(6, awake ? 180 : 420)
-  const { h } = spriteSize('cat/sleep-0')
-  const top = COUNTER_TOP - h + CAT.overhang
+/** Basil, on the worktop. Asleep most of the time; he opens an eye when the
+ *  fridge opens, wakes, stretches and sits up for the cookbook, and hops
+ *  about when you cook something. */
+export function Basil({ mode, onAsk, onHush, speech }: Props) {
+  const step = useBasilPose(mode)
+  const { h } = spriteSize(step.k)
+  const rest = spriteSize('cat/sleep-0').h
+  const top = COUNTER_TOP - h + CAT.overhang + (step.dy ?? 0)
+  const asleep = mode === 'sleep' && step.k.startsWith('cat/sleep')
 
   return (
     <>
       <button
         className="basil interact"
-        style={{ left: CAT.x, top, width: 48, height: h - CAT.overhang }}
+        style={{ left: CAT.x, top: COUNTER_TOP - rest + CAT.overhang, width: 48, height: rest - CAT.overhang }}
         onClick={onAsk}
         aria-label="Ask Basil what you can cook"
         title="Basil — what can I cook?"
       >
-        <Sprite k={`cat/sleep-${frame}`} x={0} y={0} />
+        <Sprite k={step.k} x={0} y={top - (COUNTER_TOP - rest + CAT.overhang)} />
       </button>
 
-      {!awake && !speech && (
-        <span className="zzz" style={{ left: CAT.x + 34, top: COUNTER_TOP - h - 6 }}>
+      {asleep && !speech && (
+        <span className="zzz" style={{ left: CAT.x + 34, top: COUNTER_TOP - rest - 6 }}>
           <i className="zzz__z zzz__z--a">z</i>
           <i className="zzz__z zzz__z--b">z</i>
           <i className="zzz__z zzz__z--c">z</i>
         </span>
       )}
 
-      {awake && !speech && <Bubble mood="question" x={CAT.x + 14} y={COUNTER_TOP - h - 26} />}
+      {mode === 'alert' && !speech && <Bubble mood="question" x={CAT.x + 14} y={COUNTER_TOP - rest - 26} />}
+      {mode === 'attentive' && !speech && <Bubble mood="idea" x={CAT.x + 14} y={COUNTER_TOP - rest - 28} />}
+      {mode === 'happy' && <Bubble mood="love" x={CAT.x + 14} y={COUNTER_TOP - rest - 28} />}
 
       {speech && (
         <div
           className="basilsay"
           role="status"
-          style={{ left: CAT.x - 2, bottom: ROOM.h - top + 8 }}
+          style={{ left: CAT.x - 2, bottom: ROOM.h - (COUNTER_TOP - h + CAT.overhang) + 8 }}
           onClick={onHush}
         >
           <p>{speech.title}</p>
