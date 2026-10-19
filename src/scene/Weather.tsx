@@ -39,8 +39,8 @@ export function Weather({ sky, w, h, drift = 'none' }: Props) {
   if (sky === 'cloud') {
     return (
       <>
-        <Sprite k="sky/cloud-1" x={Math.round(w * 0.1)} y={Math.round(h * 0.15)} />
-        <Sprite k="sky/cloud-3" x={Math.round(w * 0.55)} y={Math.round(h * 0.05)} />
+        <Sprite k="sky/cloud-1" x={0} y={Math.round(h * 0.15)} className="win__cloud win__cloud--c" />
+        <Sprite k="sky/cloud-3" x={0} y={Math.round(h * 0.05)} className="win__cloud win__cloud--d" />
         {seasonal}
       </>
     )

@@ -109,9 +109,15 @@
 .win__star { position: absolute; width: 1px; height: 1px; background: #f4f0d8; }
 .win__star--twinkle { animation: twinkle 2400ms steps(2) infinite; }
 @keyframes twinkle { 50% { opacity: 0.2; } }
-.win__cloud { animation: drift 40s steps(40) infinite alternate; }
-.win__cloud--b { animation-duration: 55s; }
-@keyframes drift { to { transform: translateX(12px); } }
+/* clouds sail left to right across the pane and come round again. Whole-pixel
+   steps (one per stop) so they never blur between pixels. The pane is 54px
+   and a cloud up to 27px, so each trip is about 86px. */
+.win__cloud { animation: drift 70s steps(86) infinite; }
+.win__cloud--a { animation-delay: -20s; }
+.win__cloud--b { animation-duration: 95s; animation-delay: -70s; }
+.win__cloud--c { animation-duration: 55s; animation-delay: -10s; }
+.win__cloud--d { animation-duration: 80s; animation-delay: -50s; }
+@keyframes drift { from { transform: translateX(-28px); } to { transform: translateX(58px); } }
 
 /* ---- dev only ---- */
 .debug {
