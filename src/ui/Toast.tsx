@@ -14,9 +14,9 @@ export function Toast({ undoable, onUndo, onDismiss }: Props) {
 
   if (!undoable) return null
   return (
-    <div className="toast" role="status">
+    <div className="toast sv-frame" role="status" >
       <span>{undoable.label}</span>
-      <button className="toast__undo" onClick={onUndo}>undo</button>
+      <button className="sv-btn sv-btn--small" onClick={onUndo}>undo</button>
     </div>
   )
 }

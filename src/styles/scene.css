@@ -1,30 +1,34 @@
 .stage {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 100%;
+  position: fixed;
+  inset: 0;
   overflow: hidden;
-  background: var(--ink);
+  /* clip, not just hidden: a hidden box can still be scrolled by focus or
+     scrollIntoView, which would shove the whole room off the top */
+  overflow: clip;
+  background: var(--ceiling);
 }
 
 .stage__scaler {
-  transform: scale(var(--scale));
-  transform-origin: center center;
+  position: absolute;
+  transform-origin: 0 0;
   image-rendering: pixelated;
 }
 
 .room {
   position: relative;
-  overflow: hidden;
-  background: var(--room-air);
+  /* the wall and floor deliberately spill past the room to the screen edge */
+  overflow: visible;
 }
+.room__kit { position: absolute; top: 0; }
 
-.room__wall     { position: absolute; left: 0; right: 0; background: var(--room-wall); }
-.room__ceiling  { position: absolute; inset: 0 0 auto 0; background: var(--ceiling);
+.room__wall     { position: absolute; background: var(--room-wall);
+                  /* a faint stripe of wallpaper, 8cm apart */
+                  background-image: repeating-linear-gradient(90deg, rgb(0 0 0 / 0) 0 7px, rgb(150 112 79 / 0.18) 7px 8px); }
+.room__ceiling  { position: absolute; background: var(--ceiling);
                   box-shadow: inset 0 -1px 0 var(--ink); }
-.room__floor    { position: absolute; left: 0; right: 0;
+.room__floor    { position: absolute;
                   background: url('../assets/sprites/room/floor.png') repeat; }
-.room__skirting { position: absolute; left: 0; right: 0; height: 7px;
+.room__skirting { position: absolute; height: 7px;
                   background: url('../assets/sprites/room/skirting.png') repeat-x; }
 
 /* One light source: the window, up and to the left. Hard stops only — a smooth
@@ -78,6 +82,7 @@
 .contact--soft { height: 1px; opacity: 0.3; }
 
 .hit { position: absolute; display: block; padding: 0; background: none; }
+.hit--glow:hover { filter: brightness(1.2); }
 
 .room__cord { position: absolute; width: 1px; background: var(--umber); }
 
@@ -87,10 +92,27 @@
   overflow: hidden;
   background: var(--sky);
 }
-.win__far  { position: absolute; left: 0; right: 0; bottom: 8px; height: 7px;
-             background: var(--green); }
-.win__near { position: absolute; left: 0; right: 0; bottom: 0; height: 8px;
-             background: var(--green-dark); }
+.win__band { position: absolute; left: 0; right: 0; bottom: 0; }
+.win__far  { position: absolute; left: 0; right: 0; bottom: 8px; height: 7px; background: var(--green); }
+.win__near { position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: var(--green-dark); }
+.win__far--night, .win__far--dusk  { background: #2b3a2e; }
+.win__near--night, .win__near--dusk { background: #1c261e; }
+.win__far--evening, .win__far--dawn { background: #6f7a3e; }
+.win__near--evening, .win__near--dawn { background: #4a5530; }
+.win__house { position: absolute; left: 36px; bottom: 13px; width: 7px; height: 5px; background: var(--wood-darkest);
+              box-shadow: 0 -2px 0 -1px var(--red-dark); }
+.win__house-light { position: absolute; left: 38px; bottom: 14px; width: 2px; height: 2px; background: var(--gold); }
+.win__sun { position: absolute; background: #fff1b8; box-shadow: 0 0 0 1px #ffd76a; }
+.win__sun--dawn, .win__sun--evening { background: #ffd28a; box-shadow: 0 0 0 1px #f39a5a; }
+.win__moon { position: absolute; background: #eef0dc;
+             /* a crescent: the sky colour bites a corner out */
+             box-shadow: inset -2px -1px 0 0 #c9cbb4; }
+.win__star { position: absolute; width: 1px; height: 1px; background: #f4f0d8; }
+.win__star--twinkle { animation: twinkle 2400ms steps(2) infinite; }
+@keyframes twinkle { 50% { opacity: 0.2; } }
+.win__cloud { animation: drift 40s steps(40) infinite alternate; }
+.win__cloud--b { animation-duration: 55s; }
+@keyframes drift { to { transform: translateX(12px); } }
 
 /* ---- dev only ---- */
 .debug {
@@ -117,15 +139,6 @@
 .debug__key { color: var(--text-dim); }
 .debug__thumb { display: block; transform: scale(2); transform-origin: top left; }
 .debug__thumb img { display: block; image-rendering: pixelated; }
-
-/* ---- app shell ---- */
-.app {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background: var(--ink);
-}
-.app .stage { flex: 1 1 auto; min-height: 0; }
 
 /* ---- items on shelves ---- */
 .shelf-item {
@@ -156,177 +169,6 @@
 }
 .shelf-item--soon { filter: saturate(0.75); }
 
-/* ---- the add bar ---- */
-.addbar {
-  flex: 0 0 auto;
-  padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
-  background: var(--shadow);
-  border-top: 2px solid var(--umber);
-}
-.addbar__quick { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
-.addbar__row { display: flex; gap: 8px; }
-.addbar__input {
-  flex: 1 1 auto;
-  min-width: 0;
-  padding: 8px 10px;
-  font: 24px/1 'TinyRPG', monospace;
-  color: var(--text);
-  background: var(--ink);
-  border: 2px solid var(--umber);
-  outline: none;
-}
-.addbar__input:focus { border-color: var(--wood-light); }
-.addbar__input::placeholder { color: var(--wood-dark); }
-.addbar__go {
-  padding: 8px 12px;
-  color: var(--ink);
-  background: var(--gold);
-  border: 2px solid var(--gold-dark);
-  white-space: nowrap;
-}
-.addbar__go:disabled { background: var(--wood-dark); border-color: var(--umber); color: var(--text-dim); }
-.addbar__hint { margin-top: 6px; color: var(--text-dim); }
-
-/* ---- chips ---- */
-.chip {
-  padding: 5px 9px;
-  color: var(--text);
-  background: var(--umber);
-  border: 2px solid var(--wood-darkest);
-}
-.chip--on { background: var(--gold); border-color: var(--gold-dark); color: var(--ink); }
-.chip--quiet { background: transparent; border-color: var(--umber); color: var(--text-dim); }
-
-/* ---- bottom sheet ---- */
-.sheet {
-  position: fixed;
-  inset: 0;
-  display: grid;
-  align-items: end;
-  justify-items: center;
-  background: rgb(10 8 14 / 0.6);
-  z-index: 20;
-}
-.sheet__panel {
-  width: min(100%, 420px);
-  padding: 14px;
-  background: var(--shadow);
-  border-top: 2px solid var(--wood-light);
-}
-.sheet__head { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
-.sheet__icon { display: block; overflow: hidden; }
-.sheet__icon img { display: block; image-rendering: pixelated; transform: scale(2); transform-origin: top left; }
-.sheet__dim { color: var(--text-dim); margin: 4px 0; }
-.sheet__warn { color: var(--text); margin: 4px 0; }
-.sheet__row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
-.sheet__row--end { justify-content: space-between; margin-bottom: 0; }
-
-/* ---- toast ---- */
-.toast {
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 8px);
-  transform: translateX(-50%);
-  white-space: nowrap;
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  padding: 8px 12px;
-  background: var(--umber);
-  border: 2px solid var(--wood-light);
-  z-index: 10; /* under the sheets, so it never covers the book or a card */
-}
-.toast__undo { color: var(--gold); text-decoration: underline; }
-
-/* ---- dragging ---- */
-.dock { position: relative; flex: 0 0 auto; }
-.drag-ghost {
-  position: fixed;
-  z-index: 40;
-  pointer-events: none;
-  transform: translate(-50%, -50%);
-  filter: drop-shadow(2px 2px 0 rgb(10 8 14 / 0.5));
-}
-.drag-ghost img { width: 100%; height: 100%; image-rendering: pixelated; }
-.shelf-item--lifted { opacity: 0.25; }
-
-/* ---- parse preview ---- */
-.parsed { list-style: none; margin: 10px 0 14px; max-height: 40vh; overflow: auto; }
-.parsed__row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  padding: 6px 0;
-  border-bottom: 2px solid var(--umber);
-}
-.parsed__icon { display: block; overflow: hidden; flex: 0 0 auto; }
-.parsed__icon img { display: block; image-rendering: pixelated; transform: scale(2); transform-origin: top left; }
-.parsed__text { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
-.parsed__text > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-/* ---- crafting board on the worktop ----
-   A board propped on the counter rather than a floating grid: without a
-   surface under them the ingredients read as hovering against the wall. */
-.craft {
-  position: absolute;
-  background: var(--wood-dark);
-  box-shadow:
-    inset  0  1px 0 var(--wood-light),
-    inset  1px 0 0 var(--wood-light),
-    inset -1px 0 0 var(--wood-darkest),
-    inset  0 -1px 0 var(--wood-darkest),
-    0 0 0 1px var(--ink);
-}
-.craft__cell {
-  position: absolute;
-  padding: 0;
-  background: none;
-  box-shadow: inset 0 0 0 1px var(--umber);
-}
-.craft__cell:hover { background: rgb(255 248 224 / 0.08); }
-
-.dock__craft {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  padding: 8px 12px;
-  background: var(--umber);
-  border-top: 2px solid var(--wood-darkest);
-}
-.craftpanel { display: flex; gap: 10px; align-items: center; flex: 1 1 auto; min-width: 0; }
-.craftpanel__idle { flex: 1 1 auto; color: var(--text-dim); }
-.craftpanel__slot {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  flex: 0 0 auto;
-  background: var(--shadow);
-  box-shadow: inset 0 0 0 2px var(--wood-darkest);
-}
-.craftpanel__slot img { image-rendering: pixelated; transform: scale(1); }
-.craftpanel__text { flex: 1 1 auto; min-width: 0; }
-.craftpanel__text > p { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.craftpanel__dim { color: var(--text-dim); }
-.craftpanel__acts { display: flex; gap: 6px; flex: 0 0 auto; }
-
-/* ---- recipe book ---- */
-.sheet__panel--tall { max-height: 80vh; overflow: auto; }
-.sheet__head--between { justify-content: space-between; }
-.book { list-style: none; margin: 8px 0 14px; }
-.book__row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  padding: 6px 0;
-  border-bottom: 2px solid var(--umber);
-}
-.book__row--short { opacity: 0.55; }
-.book__icon { display: block; flex: 0 0 auto; }
-.book__icon img { display: block; image-rendering: pixelated; }
-.book__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.book__text > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
 /* ---- Basil ---- */
 .basil { position: absolute; padding: 0; background: none; line-height: 0; }
 .zzz { position: absolute; width: 20px; height: 18px; pointer-events: none; }
@@ -350,32 +192,57 @@
 .basilsay {
   position: absolute;
   z-index: 6;
-  width: 168px;
+  width: 150px;
   box-sizing: border-box;
-  padding: 5px 7px;
-  background: var(--cream-light);
-  color: var(--ink);
-  border: 2px solid var(--ink);
-  font: 12px/1.25 'TinyRPG', monospace;
+  padding: 4px 6px;
+  background: #fbe2b0;
+  color: #4a2511;
+  border: 1px solid #3b1d0e;
+  box-shadow: inset 0 0 0 1px #e8b874, 2px 2px 0 rgb(0 0 0 / 0.3);
+  /* the room is scaled up, so 12px here is a comfortable size on screen */
+  font: 12px/1.15 'TinyRPG', monospace;
   cursor: pointer;
 }
 .basilsay p { margin: 0; }
 .basilsay p + p { margin-top: 3px; }
-.basilsay__title { color: var(--red-dark); }
-.basilsay__dim { color: var(--wood-dark); }
-.basilsay__note { color: var(--red-dark); }
-/* tail, pointing down at his head */
+.basilsay__dim { color: #8a5a35; }
 .basilsay::after {
   content: '';
   position: absolute;
   left: 18px;
-  bottom: -8px;
-  width: 6px;
-  height: 6px;
-  background: var(--cream-light);
-  border-right: 2px solid var(--ink);
-  border-bottom: 2px solid var(--ink);
+  bottom: -4px;
+  width: 5px;
+  height: 5px;
+  background: #fbe2b0;
+  border-right: 1px solid #3b1d0e;
+  border-bottom: 1px solid #3b1d0e;
+  transform: rotate(45deg);
 }
+
+/* ---- the nook ---- */
+.nook__picture { position: absolute; overflow: hidden; background: var(--blue-light);
+  box-shadow: 0 0 0 2px var(--wood-dark), 0 0 0 3px var(--wood-darkest), 2px 3px 0 3px rgb(0 0 0 / 0.15); }
+.nook__picture-sky { position: absolute; inset: 0 0 50% 0; background: var(--mint); }
+.nook__picture-sun { position: absolute; left: 12px; top: 4px; width: 4px; height: 4px; background: var(--cream-light); }
+.nook__picture-hill { position: absolute; left: -4px; right: 6px; bottom: 6px; height: 9px; background: var(--green); }
+.nook__picture-field { position: absolute; left: 0; right: 0; bottom: 0; height: 7px; background: var(--green-dark); }
+
+.nook__table { position: absolute; }
+.nook__table-top { position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--wood);
+  box-shadow: inset 0 1px 0 var(--wood-light), inset 0 -1px 0 var(--wood-darkest), 0 0 0 1px var(--ink); }
+.nook__table-apron { position: absolute; left: 3px; right: 3px; top: 4px; height: 4px; background: var(--wood-dark);
+  box-shadow: inset 0 -1px 0 var(--wood-darkest); }
+.nook__leg { position: absolute; top: 4px; bottom: 0; width: 4px; background: var(--wood-dark);
+  box-shadow: inset 1px 0 0 var(--wood), inset -1px 0 0 var(--wood-darkest); }
+
+.nook__chair { position: absolute; width: 14px; height: 48px; }
+.nook__chair > i { position: absolute; background: var(--wood-dark); box-shadow: 0 0 0 1px var(--ink); }
+.nook__chair-back { left: 0; top: 0; width: 3px; height: 48px; box-shadow: inset 1px 0 0 var(--wood-light), 0 0 0 1px var(--ink) !important; }
+.nook__chair-rail { left: 3px; top: 6px; width: 5px; height: 2px; }
+.nook__chair-seat { left: 0; top: 24px; width: 14px; height: 3px; background: var(--wood) !important; }
+.nook__chair-leg { left: 11px; top: 27px; width: 3px; height: 21px; }
+.nook__chair--r { transform: scaleX(-1); }
+
 
 .bubble {
   position: absolute;
@@ -394,17 +261,28 @@
   mix-blend-mode: multiply;
   z-index: 4;
 }
-/* warm pool under the lamp, hard-edged like everything else */
-.room__lamp {
+/* warm pool under each lamp, in a few hard rings rather than a smooth fade */
+.room__glow {
   position: absolute;
-  left: 46px;
-  top: 8px;
-  width: 100px;
-  height: 120px;
+  width: 0;
+  height: 0;
   pointer-events: none;
-  background: var(--gold);
-  mix-blend-mode: screen;
   z-index: 4;
+  mix-blend-mode: screen;
+}
+.room__glow::before {
+  content: '';
+  position: absolute;
+  left: -90px;
+  top: -40px;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle at 50% 22%,
+    rgb(255 196 110 / 0.42) 0 18px,
+    rgb(255 186 100 / 0.28) 18px 40px,
+    rgb(255 176 90 / 0.16) 40px 66px,
+    rgb(255 166 80 / 0.07) 66px 90px,
+    rgb(0 0 0 / 0) 90px);
 }
 
 /* ---- weather in the pane ---- */
@@ -417,21 +295,3 @@
   to   { transform: translateY(100%) translateX(0); }
 }
 
-/* ---- credits ---- */
-.credits__link {
-  position: fixed;
-  left: 8px;
-  top: 6px;
-  color: var(--wood-dark);
-  z-index: 6;
-}
-.credits__link:hover { color: var(--text-dim); }
-.credits { list-style: none; margin: 8px 0 14px; }
-.credits__row {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 7px 0;
-  border-bottom: 2px solid var(--umber);
-}
-.credits__warn { color: var(--gold); }

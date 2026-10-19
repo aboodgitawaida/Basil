@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { looseJson, validateCraft, validateParse, validateSuggest } from '../../server/schemas'
+import { looseJson, validateParse, validateSuggest } from '../../server/schemas'
 
 const goodItem = { displayName: 'Whole Milk', name: 'Milk', category: 'dairy', location: 'fridge', amount: 'full' }
 
@@ -24,6 +24,11 @@ describe('validateParse', () => {
     })
   })
 
+  it('keeps unit, size and kind, lower-cased', () => {
+    const out = validateParse({ items: [{ ...goodItem, name: 'cheddar', count: 1, unit: 'Block', kind: 'Cheese', measure: '200g' }] })
+    expect(out?.items[0]).toMatchObject({ unit: 'block', kind: 'cheese', measure: '200g' })
+  })
+
   it.each([
     ['no items', { items: [] }],
     ['not an object', 'milk'],
@@ -43,31 +48,29 @@ describe('validateParse', () => {
 })
 
 describe('validateSuggest', () => {
-  const meal = { name: 'Omelette', ingredients: ['egg'], steps: ['beat', 'cook'], minutes: 10 }
+  const meal = {
+    name: 'Omelette', serves: 1, minutes: 10, kcal: 390, protein: 27, vegetarian: true,
+    ingredients: [{ item: 'egg', qty: '3 eggs' }, { item: 'butter', qty: 'a knob', optional: true }],
+    steps: ['beat', 'cook'],
+  }
 
-  it('fills in optional lists and keeps the line', () => {
+  it('keeps a full recipe with nutrition, and the line', () => {
     expect(validateSuggest({ meals: [meal], line: ' Eggs again. ' })).toEqual({
-      meals: [{ ...meal, missing: [], usesSoon: [] }],
+      meals: [{ ...meal, vegan: false, note: undefined }],
       line: 'Eggs again.',
     })
   })
 
-  it('rejects bad minutes and non-string ingredients', () => {
+  it('vegan implies vegetarian', () => {
+    expect(validateSuggest({ meals: [{ ...meal, vegetarian: false, vegan: true }] })?.meals[0]).toMatchObject({ vegetarian: true, vegan: true })
+  })
+
+  it('rejects bad numbers, missing steps and bad ingredients', () => {
     expect(validateSuggest({ meals: [{ ...meal, minutes: 'ten' }] })).toBeNull()
     expect(validateSuggest({ meals: [{ ...meal, minutes: 9999 }] })).toBeNull()
-    expect(validateSuggest({ meals: [{ ...meal, ingredients: [3] }] })).toBeNull()
+    expect(validateSuggest({ meals: [{ ...meal, kcal: -5 }] })).toBeNull()
+    expect(validateSuggest({ meals: [{ ...meal, steps: [] }] })).toBeNull()
+    expect(validateSuggest({ meals: [{ ...meal, ingredients: ['egg'] }] })).toBeNull()
   })
 })
 
-describe('validateCraft', () => {
-  it('accepts a verdict and defaults minutes', () => {
-    expect(validateCraft({ name: 'Toast', ok: true, steps: ['toast'] })).toEqual({
-      name: 'Toast', ok: true, steps: ['toast'], minutes: 0, line: undefined,
-    })
-  })
-
-  it('needs a name and a real boolean', () => {
-    expect(validateCraft({ name: 'Toast', ok: 'yes' })).toBeNull()
-    expect(validateCraft({ ok: true })).toBeNull()
-  })
-})

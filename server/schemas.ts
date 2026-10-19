@@ -25,6 +25,9 @@ export const PARSE_SCHEMA = {
           location: { type: 'string', enum: [...LOCATIONS] },
           amount: { type: 'string', enum: [...AMOUNTS] },
           count: { type: 'integer' },
+          unit: { type: 'string' },
+          measure: { type: 'string' },
+          kind: { type: 'string' },
           shelfLifeDays: { type: 'integer' },
         },
         required: ['displayName', 'name', 'category', 'location', 'amount'],
@@ -43,30 +46,33 @@ export const SUGGEST_SCHEMA = {
         type: 'object',
         properties: {
           name: { type: 'string' },
-          ingredients: { type: 'array', items: { type: 'string' } },
-          missing: { type: 'array', items: { type: 'string' } },
-          steps: { type: 'array', items: { type: 'string' } },
+          serves: { type: 'integer' },
           minutes: { type: 'integer' },
-          usesSoon: { type: 'array', items: { type: 'string' } },
+          kcal: { type: 'integer' },
+          protein: { type: 'integer' },
+          vegetarian: { type: 'boolean' },
+          vegan: { type: 'boolean' },
+          ingredients: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                item: { type: 'string' },
+                qty: { type: 'string' },
+                optional: { type: 'boolean' },
+              },
+              required: ['item', 'qty'],
+            },
+          },
+          steps: { type: 'array', items: { type: 'string' } },
+          note: { type: 'string' },
         },
-        required: ['name', 'ingredients', 'steps', 'minutes'],
+        required: ['name', 'serves', 'minutes', 'kcal', 'protein', 'ingredients', 'steps'],
       },
     },
     line: { type: 'string' },
   },
   required: ['meals'],
-} as const
-
-export const CRAFT_SCHEMA = {
-  type: 'object',
-  properties: {
-    name: { type: 'string' },
-    ok: { type: 'boolean' },
-    steps: { type: 'array', items: { type: 'string' } },
-    minutes: { type: 'integer' },
-    line: { type: 'string' },
-  },
-  required: ['name', 'ok'],
 } as const
 
 const str = (v: unknown): v is string => typeof v === 'string' && v.trim().length > 0
@@ -80,8 +86,14 @@ export type ParsedDraft = {
   location: typeof LOCATIONS[number]
   amount: typeof AMOUNTS[number]
   count?: number
+  unit?: string
+  measure?: string
+  kind?: string
   shelfLifeDays?: number
 }
+
+const optStr = (v: unknown, max: number): string | undefined =>
+  typeof v === 'string' && v.trim() ? v.trim().toLowerCase().slice(0, max) : undefined
 
 /** Returns null — not a partial result — when anything is off. A half-parsed
  *  list is worse than falling back to the keyword matcher. */
@@ -105,6 +117,9 @@ export function validateParse(raw: unknown): { items: ParsedDraft[] } | null {
       location: it.location,
       amount: it.amount,
       count: it.count,
+      unit: optStr(it.unit, 20),
+      measure: optStr(it.measure, 20),
+      kind: optStr(it.kind, 30),
       shelfLifeDays: it.shelfLifeDays,
     })
   }
@@ -113,11 +128,15 @@ export function validateParse(raw: unknown): { items: ParsedDraft[] } | null {
 
 export type SuggestedMeal = {
   name: string
-  ingredients: string[]
-  missing: string[]
-  steps: string[]
+  serves: number
   minutes: number
-  usesSoon: string[]
+  kcal: number
+  protein: number
+  vegetarian: boolean
+  vegan: boolean
+  ingredients: Array<{ item: string; qty: string; optional?: boolean }>
+  steps: string[]
+  note?: string
 }
 
 const strList = (v: unknown, max = 24): string[] | null => {
@@ -126,47 +145,49 @@ const strList = (v: unknown, max = 24): string[] | null => {
   const out: string[] = []
   for (const s of v) {
     if (!str(s)) return null
-    out.push(s.trim().slice(0, 160))
+    out.push(s.trim().slice(0, 240))
   }
   return out
 }
 
+const int = (v: unknown, min: number, max: number): v is number =>
+  Number.isInteger(v) && (v as number) >= min && (v as number) <= max
+
 export function validateSuggest(raw: unknown): { meals: SuggestedMeal[]; line?: string } | null {
   if (!raw || typeof raw !== 'object') return null
   const meals = (raw as any).meals
-  if (!Array.isArray(meals) || meals.length > 8) return null
+  if (!Array.isArray(meals) || meals.length > 10) return null
   const out: SuggestedMeal[] = []
   for (const m of meals) {
     if (!m || typeof m !== 'object' || !str(m.name)) return null
-    const ingredients = strList(m.ingredients)
-    const missing = strList(m.missing)
-    const steps = strList(m.steps)
-    const usesSoon = strList(m.usesSoon)
-    if (!ingredients || !missing || !steps || !usesSoon) return null
-    if (!Number.isInteger(m.minutes) || m.minutes < 0 || m.minutes > 600) return null
-    out.push({ name: m.name.trim().slice(0, 80), ingredients, missing, steps, minutes: m.minutes, usesSoon })
+    const steps = strList(m.steps, 12)
+    if (!steps || !steps.length) return null
+    if (!Array.isArray(m.ingredients) || !m.ingredients.length || m.ingredients.length > 20) return null
+    const ingredients: SuggestedMeal['ingredients'] = []
+    for (const x of m.ingredients) {
+      if (!x || typeof x !== 'object' || !str(x.item)) return null
+      ingredients.push({
+        item: x.item.trim().slice(0, 60),
+        qty: str(x.qty) ? x.qty.trim().slice(0, 60) : '',
+        ...(x.optional === true ? { optional: true } : {}),
+      })
+    }
+    if (!int(m.minutes, 0, 600) || !int(m.serves, 1, 20) || !int(m.kcal, 0, 5000) || !int(m.protein, 0, 300)) return null
+    out.push({
+      name: m.name.trim().slice(0, 80),
+      serves: m.serves,
+      minutes: m.minutes,
+      kcal: m.kcal,
+      protein: m.protein,
+      vegetarian: m.vegetarian === true || m.vegan === true,
+      vegan: m.vegan === true,
+      ingredients,
+      steps,
+      note: str(m.note) ? m.note.trim().slice(0, 160) : undefined,
+    })
   }
   const line = str((raw as any).line) ? (raw as any).line.trim().slice(0, 160) : undefined
   return { meals: out, line }
-}
-
-export type CraftVerdict = { name: string; ok: boolean; steps: string[]; minutes: number; line?: string }
-
-export function validateCraft(raw: unknown): CraftVerdict | null {
-  if (!raw || typeof raw !== 'object') return null
-  const r = raw as any
-  if (!str(r.name) || typeof r.ok !== 'boolean') return null
-  const steps = strList(r.steps)
-  if (!steps) return null
-  const minutes = Number.isInteger(r.minutes) ? r.minutes : 0
-  if (minutes < 0 || minutes > 600) return null
-  return {
-    name: r.name.trim().slice(0, 80),
-    ok: r.ok,
-    steps,
-    minutes,
-    line: str(r.line) ? r.line.trim().slice(0, 160) : undefined,
-  }
 }
 
 /** Models sometimes wrap JSON in prose or a code fence even when asked not to. */

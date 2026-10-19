@@ -11,20 +11,33 @@ describe('keywordParse', () => {
   it('turns a typed list into drafts', () => {
     const drafts = keywordParse('2 bags of milk, half a block of cheddar, a dozen eggs')
     expect(drafts).toEqual([
-      expect.objectContaining({ displayName: '2 bags of milk', name: 'milk', category: 'dairy', amount: 'full' }),
-      expect.objectContaining({ name: 'cheddar', category: 'dairy', amount: 'half' }),
-      expect.objectContaining({ name: 'egg', count: 12 }),
+      expect.objectContaining({ displayName: 'Milk', name: 'milk', category: 'dairy', amount: 'full', count: 2, unit: 'bag' }),
+      expect.objectContaining({ displayName: 'Cheddar', name: 'cheddar', kind: 'cheese', category: 'dairy', amount: 'half', unit: 'block' }),
+      expect.objectContaining({ displayName: 'Eggs', name: 'egg', count: 12 }),
     ])
   })
 
-  it('counts only countable things', () => {
-    expect(keywordParse('3 apples')[0].count).toBe(3)
-    expect(keywordParse('2 litres of milk')[0].count).toBeUndefined()
+  it('labels the thing and keeps the number apart: "two eggs" is Eggs, two of them', () => {
+    expect(keywordParse('two eggs')[0]).toMatchObject({ displayName: 'Eggs', name: 'egg', count: 2 })
+    expect(keywordParse('3 apples')[0]).toMatchObject({ displayName: 'Apples', count: 3 })
+    expect(keywordParse('half a dozen eggs')[0].count).toBe(6)
+    expect(keywordParse('chicken breasts x2')[0]).toMatchObject({ displayName: 'Chicken Breasts', count: 2 })
   })
 
-  it('reads "a" as an article unless the thing is countable', () => {
+  it('treats sizes as a measure, not a count', () => {
+    expect(keywordParse('2 litres of milk')[0]).toMatchObject({ name: 'milk', measure: '2 litres', count: undefined })
+    expect(keywordParse('500g beef mince')[0]).toMatchObject({ name: 'beef mince', measure: '500g' })
+  })
+
+  it('reads "a" as one when there is a container or a countable thing', () => {
     expect(keywordParse('a lemon')[0].count).toBe(1)
-    expect(keywordParse('a bag of rice')[0].count).toBeUndefined()
+    expect(keywordParse('a bag of rice')[0]).toMatchObject({ count: 1, unit: 'bag', displayName: 'Rice' })
+    expect(keywordParse('the rice')[0].count).toBeUndefined()
+  })
+
+  it('knows what kind of thing a specific one is', () => {
+    expect(keywordParse('sourdough loaf')[0]).toMatchObject({ kind: 'bread', category: 'grain' })
+    expect(keywordParse('basmati')[0].kind).toBe('rice')
   })
 
   it('notices when something is nearly gone', () => {

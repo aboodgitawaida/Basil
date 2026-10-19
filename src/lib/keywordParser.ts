@@ -1,58 +1,95 @@
 import { normalise } from '../assets/manifest'
-import { guessCategory, type Amount } from './schema'
+import { COUNTABLE, guessCategory, kindOf, prettyName, type Amount } from './schema'
 import type { Draft } from './inventory'
 
 /** The offline parser. It is the fallback when the model is unreachable or
- *  returns something that doesn't fit the schema, and it is what phase 2 ran
- *  on before there was a model at all. Deliberately dumb and never throws. */
+ *  returns something that doesn't fit the schema. Deliberately simple and
+ *  never throws.
+ *
+ *  "two eggs"              -> Eggs, count 2
+ *  "2 bags of milk"        -> Milk, count 2, unit bag
+ *  "half a block of cheddar" -> Cheddar, half, unit block, kind cheese
+ *  "2 litres of milk"      -> Milk, measure "2 litres"
+ */
 
 const NUMBER_WORDS: Record<string, number> = {
-  a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6,
-  seven: 7, eight: 8, nine: 9, ten: 10, dozen: 12,
+  one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8,
+  nine: 9, ten: 10, eleven: 11, twelve: 12, dozen: 12, couple: 2, pair: 2,
 }
 
+/** Containers: these are what a count is counted in. */
+const UNITS: Record<string, string> = {
+  bag: 'bag', bags: 'bag', bottle: 'bottle', bottles: 'bottle', block: 'block', blocks: 'block',
+  carton: 'carton', cartons: 'carton', tin: 'tin', tins: 'tin', can: 'can', cans: 'can',
+  jar: 'jar', jars: 'jar', pack: 'pack', packs: 'pack', packet: 'packet', packets: 'packet',
+  box: 'box', boxes: 'box', loaf: 'loaf', loaves: 'loaf', bunch: 'bunch', bunches: 'bunch',
+  tub: 'tub', tubs: 'tub', punnet: 'punnet', punnets: 'punnet', head: 'head', heads: 'head',
+  pot: 'pot', pots: 'pot', tray: 'tray', trays: 'tray', slice: 'slice', slices: 'slice',
+}
+
+/** Sizes, which are not counts: "2 litres of milk" is one lot of milk. */
+const MEASURE = /\b(\d+(?:\.\d+)?)\s*(l|litres?|liters?|ml|kg|g|grams?|lbs?|pounds?|oz|pints?)\b/
+
 const AMOUNT_WORDS: Array<[RegExp, Amount]> = [
-  [/\bhalf\b|\bhalf a\b/, 'half'],
-  [/\bnearly out\b|\blast\b|\bdregs\b|\balmost gone\b|\bbit of\b/, 'low'],
+  [/\bhalf\b(?!\s+(a\s+)?dozen)/, 'half'],
+  [/\bnearly out\b|\blast\b|\bdregs\b|\balmost gone\b|\bbit of\b|\bnearly empty\b/, 'low'],
   [/\bfull\b|\bnew\b|\bunopened\b/, 'full'],
 ]
 
-const COUNTABLE = /\begg|\bapple|\bbanana|\bonion|\bpotato|\blemon|\blime|\borange|\bpear|\bcan\b|\btin\b|\byoghurt|\byogurt/
-
 export function splitPhrases(text: string): string[] {
   return text
-    .split(/,|;|\band\b|\bplus\b|\n/gi)
+    .split(/,|;|\band\b|\bplus\b|&|\n/gi)
     .map(s => s.trim())
     .filter(Boolean)
 }
 
-export function keywordParse(text: string): Draft[] {
-  return splitPhrases(text).map(phrase => {
-    const lower = phrase.toLowerCase()
+const said = (lower: string, w: string) => new RegExp(`\\b${w}\\b`).test(lower)
 
-    let count: number | undefined
-    const digits = lower.match(/\b(\d+)\b/)
-    if (digits) count = parseInt(digits[1], 10)
-    if (count === undefined) {
-      const said = (w: string) => new RegExp(`\\b${w}\\b`).test(lower)
-      // a real number word wins over an article: "a dozen eggs" is 12, not 1
-      const word = Object.keys(NUMBER_WORDS).find(w => w !== 'a' && w !== 'an' && said(w))
-      if (word) count = NUMBER_WORDS[word]
-      // "a" and "an" are articles far more often than counts, so they only
-      // count when the phrase also names something countable
-      else if ((said('a') || said('an')) && COUNTABLE.test(lower)) count = 1
-    }
+function readCount(lower: string): number | undefined {
+  if (/\bhalf (a )?dozen\b/.test(lower)) return 6
+  const times = lower.match(/\bx\s*(\d+)\b|\b(\d+)\s*x\b/)
+  if (times) return parseInt(times[1] ?? times[2], 10)
+  const digits = lower.match(/\b(\d+)\b(?!\s*(?:\.\d|l\b|litres?|liters?|ml|kg|g\b|grams?|lbs?|pounds?|oz|pints?))/)
+  if (digits) return parseInt(digits[1], 10)
+  const word = Object.keys(NUMBER_WORDS).find(w => said(lower, w))
+  if (word) {
+    // "two dozen eggs" is 24
+    if (word !== 'dozen' && said(lower, 'dozen')) return NUMBER_WORDS[word] * 12
+    return NUMBER_WORDS[word]
+  }
+  return undefined
+}
+
+function readUnit(lower: string): string | undefined {
+  for (const w of lower.split(/[^a-z]+/)) if (UNITS[w]) return UNITS[w]
+  return undefined
+}
+
+export function keywordParse(text: string): Draft[] {
+  return splitPhrases(text).flatMap(phrase => {
+    const lower = phrase.toLowerCase()
+    const name = normalise(phrase)
+    if (!name) return []
+
+    const measureHit = lower.match(MEASURE)
+    const measure = measureHit ? measureHit[0].replace(/\s+/g, ' ') : undefined
+    const unit = readUnit(lower)
+    let count = readCount(lower)
+    // "a bag of rice" and "an apple" are one of something
+    if (count === undefined && (said(lower, 'a') || said(lower, 'an')) && (unit || COUNTABLE.test(name))) count = 1
 
     let amount: Amount | undefined
     for (const [re, a] of AMOUNT_WORDS) if (re.test(lower)) { amount = a; break }
 
-    const name = normalise(phrase) || lower
-    return {
-      displayName: phrase,
+    return [{
+      displayName: prettyName(name, count, unit),
       name,
+      kind: kindOf(name),
       category: guessCategory(name, phrase),
       amount: amount ?? 'full',
-      count: count && COUNTABLE.test(lower) ? count : undefined,
-    }
+      count: count && count > 0 ? Math.min(count, 999) : undefined,
+      unit,
+      measure,
+    }]
   })
 }

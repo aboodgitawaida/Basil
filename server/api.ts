@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import { aiStatus, judgeCraft, parseItems, suggestMeals } from './handlers.js'
+import { aiStatus, parseItems, suggestMeals } from './handlers.js'
 import { RateLimiter, clientIp } from './rateLimit.js'
 
 const MAX_BODY = 64 * 1024
@@ -86,13 +86,6 @@ export function createApiHandler(limiter: RateLimiter = new RateLimiter()) {
         const dietary = Array.isArray(body.dietary) ? body.dietary.slice(0, 12).map(String) : []
         if (!allowed(req, res)) return true
         send(res, 200, await suggestMeals(inv, dietary))
-        return true
-      }
-      if (url === '/api/craft') {
-        const ing = Array.isArray(body.ingredients) ? body.ingredients.slice(0, 9).map(String) : []
-        if (!ing.length) return send(res, 400, { error: 'empty board' }), true
-        if (!allowed(req, res)) return true
-        send(res, 200, await judgeCraft(ing))
         return true
       }
     } catch (err) {

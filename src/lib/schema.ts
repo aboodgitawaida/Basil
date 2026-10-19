@@ -23,7 +23,14 @@ export type Item = {
   shelf: number
   position: number
   amount: Amount
+  /** how many: 2 eggs, 2 bags of milk. Absent means one. */
   count?: number
+  /** what the count is counted in: "bag", "bottle". Absent for loose things like eggs */
+  unit?: string
+  /** a size that isn't a count: "2 litres", "500g" */
+  measure?: string
+  /** the general thing it is: cheddar is a cheese, a sirloin is beef */
+  kind?: string
   addedAt: string
   /** guessed from the item type, never required */
   expiresAt?: string
@@ -42,9 +49,14 @@ export type CookedMeal = {
 
 export type Settings = {
   dietary: string[]
+  /** sound effects */
   sound: boolean
-  /** null follows the real clock; a number 0-1 overrides the dimmer */
-  lightOverride: number | null
+  music: boolean
+  /** the room lamp: null switches itself on after dark, true/false is the
+   *  switch on the wall. It never changes the time of day outside. */
+  lamp: boolean | null
+  /** ask the browser for a location so the window shows the real weather */
+  weather: boolean
   lat?: number
   lon?: number
 }
@@ -58,13 +70,13 @@ export type AppState = {
   quickAdd: Record<string, number>
 }
 
-export const SCHEMA_VERSION = 1
+export const SCHEMA_VERSION = 2
 
 export const EMPTY_STATE: AppState = {
   version: SCHEMA_VERSION,
   items: [],
   history: [],
-  settings: { dietary: [], sound: false, lightOverride: null },
+  settings: { dietary: [], sound: false, music: false, lamp: null, weather: true },
   quickAdd: {},
 }
 
@@ -108,9 +120,9 @@ const CATEGORY_WORDS: Array<[RegExp, Category]> = [
   // before produce, so "orange juice" is a drink; whole words, so "chocolate"
   // is not cola and "watermelon" is not water
   [/\b(juice|water|wine|beer|cola|soda|squash|cordial|lemonade|cider)s?\b/, 'drink'],
-  [/chicken|beef|steak|pork|lamb|bacon|ham|mince|fish|turkey|drumstick|sausage/, 'meat'],
-  [/apple|pear|banana|orange|berry|lettuce|salad|broccoli|carrot|onion|potato|tomato|pumpkin|melon|veg|fruit/, 'produce'],
-  [/bread|pasta|rice|flour|oat|cereal|noodle|couscous|quinoa|lentil/, 'grain'],
+  [/chicken|beef|steak|pork|lamb|bacon|ham|mince|fish|salmon|cod|prawn|shrimp|turkey|drumstick|sausage|chorizo/, 'meat'],
+  [/apple|pear|banana|orange|lemon|lime|berry|grape|peach|plum|mango|avocado|lettuce|salad|spinach|rocket|kale|cabbage|broccoli|cauliflower|carrot|onion|garlic|potato|tomato|pepper|courgette|cucumber|mushroom|leek|celery|pumpkin|melon|veg|fruit|herb|basil|coriander|parsley/, 'produce'],
+  [/bread|loaf|sourdough|baguette|bagel|brioche|tortilla|wrap|pitta|pasta|spaghetti|penne|rice|flour|oat|cereal|granola|noodle|couscous|quinoa|lentil/, 'grain'],
   [/ketchup|mustard|sauce|mayo|vinegar|oil|jam|honey|pickle|marmite|paste/, 'condiment'],
   [/\bfrozen\b|ice cream|\bpeas?\b|\bchips\b/, 'frozen'],
   [/tin|can|soup|bean|chickpea|tuna/, 'tinned'],
@@ -130,19 +142,105 @@ export function guessCategory(name: string, raw = ''): Category {
 /** Specific things that count as a general ingredient: a recipe that wants
  *  cheese is happy with cheddar. */
 const KINDS: Record<string, string[]> = {
-  cheese: ['cheddar', 'brie', 'feta', 'gouda', 'parmesan', 'mozzarella', 'halloumi', 'stilton'],
-  bread: ['loaf', 'baguette', 'sourdough', 'bagel', 'bap', 'roll'],
+  cheese: ['cheddar', 'brie', 'feta', 'gouda', 'parmesan', 'mozzarella', 'halloumi', 'stilton', 'emmental', 'gruyere', 'camembert', 'ricotta'],
+  bread: ['loaf', 'baguette', 'sourdough', 'bagel', 'bap', 'roll', 'brioche', 'ciabatta', 'pitta', 'pita', 'wrap', 'tortilla'],
   drumstick: ['chicken'],
+  chicken: ['drumstick', 'thigh', 'breast', 'wing'],
   steak: ['beef', 'sirloin', 'ribeye'],
+  beef: ['steak', 'sirloin', 'ribeye', 'mince'],
+  pasta: ['spaghetti', 'penne', 'fusilli', 'macaroni', 'linguine', 'tagliatelle', 'lasagne', 'rigatoni'],
+  rice: ['basmati', 'jasmine', 'arborio'],
+  apple: ['bramley', 'granny smith', 'gala', 'braeburn', 'pink lady'],
+  fish: ['salmon', 'cod', 'haddock', 'tuna', 'mackerel', 'trout', 'prawn', 'shrimp'],
+  onion: ['shallot', 'red onion', 'spring onion', 'scallion'],
+  potato: ['maris piper', 'king edward', 'new potato'],
+  berry: ['strawberry', 'raspberry', 'blueberry', 'blackberry'],
+  lettuce: ['romaine', 'iceberg', 'little gem', 'rocket', 'spinach'],
+  yoghurt: ['yogurt', 'greek yoghurt', 'greek yogurt'],
+  oat: ['porridge', 'oatmeal', 'rolled oat'],
+  sausage: ['chorizo', 'bratwurst', 'frankfurter', 'hot dog'],
+  bacon: ['pancetta', 'lardon'],
+  ham: ['prosciutto', 'gammon'],
+  tomato: ['cherry tomato', 'plum tomato', 'passata'],
+  milk: ['whole milk', 'semi skimmed'],
+}
+
+/** The general thing a specific one is: cheddar -> cheese. Undefined when
+ *  the name already is the general thing, or nobody knows. */
+export function kindOf(name: string): string | undefined {
+  for (const [kind, specific] of Object.entries(KINDS)) {
+    // these two exist for recipe matching, not as names for things
+    if (kind === 'drumstick' || kind === 'steak') continue
+    if (name === kind || name.includes(kind)) continue
+    if (specific.some(k => name.includes(k))) return kind
+  }
+  return undefined
+}
+
+export const CATEGORY_LABEL: Record<Category, string> = {
+  dairy: 'dairy & eggs', produce: 'fruit & veg', meat: 'meat & fish',
+  grain: 'bread & grains', condiment: 'sauces', drink: 'drinks',
+  frozen: 'frozen', tinned: 'tins & jars', baking: 'baking',
+  snack: 'snacks', other: 'odds & ends',
+}
+
+/** Things counted one by one, which read naturally in the plural: "Eggs". */
+export const COUNTABLE = /\b(egg|apple|banana|onion|potato|lemon|lime|orange|pear|peach|plum|avocado|tomato|pepper|carrot|courgette|zucchini|cucumber|yoghurt|yogurt|sausage|burger|drumstick|thigh|breast|bagel|roll|croissant|muffin|tortilla|wrap|pitta|steak|chop|fillet|kiwi|mango|clove|leek)\b/
+
+export function plural(word: string): string {
+  if (/(s|sh|ch|x|z)$/.test(word)) return `${word}es`
+  if (/[^aeiou]y$/.test(word)) return `${word.slice(0, -1)}ies`
+  if (/(potato|tomato|mango)$/.test(word)) return `${word}es`
+  return `${word}s`
+}
+
+const cap = (s: string) => s.replace(/\b\w/g, c => c.toUpperCase())
+
+/** A clean label for a thing on the shelf: "two eggs" -> "Eggs",
+ *  "half a block of mature cheddar" -> "Cheddar". The quantity lives
+ *  separately, in count/unit/measure. */
+export function prettyName(name: string, count?: number, unit?: string): string {
+  const n = name.trim()
+  if (!n) return ''
+  const many = (count ?? 1) > 1 && !unit && COUNTABLE.test(n)
+  if (!many) return cap(n)
+  const words = n.split(' ')
+  words[words.length - 1] = plural(words[words.length - 1])
+  return cap(words.join(' '))
+}
+
+/** "×6", "2 bags", "1 bottle", "2 litres", or "" for a single loose thing. */
+export function quantityText(i: Pick<Item, 'count' | 'unit' | 'measure'>): string {
+  const n = i.count ?? 1
+  if (i.unit) return `${n} ${n === 1 ? i.unit : plural(i.unit)}${i.measure ? ` · ${i.measure}` : ''}`
+  if (i.measure) return n > 1 ? `${n} × ${i.measure}` : i.measure
+  return n > 1 ? `×${n}` : ''
 }
 
 /** Whether something in the kitchen covers what a recipe needs. Loose on
  *  purpose: "cheddar cheese" covers "cheese", and so does plain "cheddar". */
+const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+/** `words` appears in `hay` as whole words, allowing a plural: "pea" is in
+ *  "frozen peas" but not in "pear" or "peanut butter". */
+const wordIn = (hay: string, words: string) => new RegExp(`\\b${esc(words)}(e?s)?\\b`).test(hay)
+
+/** Things whose name contains an ingredient they are not. */
+const NOT_REALLY: Array<[RegExp, string]> = [
+  [/peanut butter|nut butter|almond butter/, 'butter'],
+  [/coconut milk/, 'milk'],
+]
+
+/** Needs that only their whole name satisfies: plain butter is not peanut butter. */
+const WHOLE_ONLY = new Set(['peanut butter', 'soy sauce', 'hot sauce', 'coconut milk', 'green bean', 'spring onion', 'sweet potato'])
+
 export function covers(have: string, need: string): boolean {
   if (!have || !need) return false
-  if (have.includes(need) || need.includes(have)) return true
-  return (KINDS[need] ?? []).some(k => have.includes(k))
+  if (WHOLE_ONLY.has(need)) return wordIn(have, need)
+  if (NOT_REALLY.some(([re, n]) => n === need && re.test(have))) return false
+  if (wordIn(have, need) || wordIn(need, have)) return true
+  return (KINDS[need] ?? []).some(k => wordIn(have, k))
 }
+
 
 /** Items within this many days of their guessed expiry get a quiet visual cue. */
 export const SOON_DAYS = 3

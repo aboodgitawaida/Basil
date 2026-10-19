@@ -2,45 +2,38 @@ import { CAT, COUNTER_TOP, ROOM } from '../lib/room'
 import { spriteSize } from '../lib/sprites'
 import { useLoop } from '../lib/useLoop'
 import { Sprite } from './Sprite'
-import { Bubble, type Mood } from './Bubble'
+import { Bubble } from './Bubble'
 import type { Spoken } from '../lib/basilSays'
 
 type Props = {
-  /** he stirs when the fridge opens */
-  disturbed: boolean
-  /** clicking him asks for a meal */
+  /** he stirs when the fridge opens or the cookbook is up */
+  awake: boolean
+  /** clicking him opens the cookbook */
   onAsk: () => void
   onHush: () => void
   speech: Spoken | null
-  thinking: boolean
 }
 
-/**
- * Basil. Click him and he suggests a meal in his speech bubble; open the
- * fridge and he may have a remark. Otherwise he breathes, drops the odd z,
- * and looks up when the fridge opens. Nothing is locked behind him: the
- * recipe book and the craft board work without him.
- */
-export function Basil({ disturbed, onAsk, onHush, speech, thinking }: Props) {
-  const frame = useLoop(6, disturbed || thinking ? 180 : 420)
+/** Basil, asleep on the worktop. Click him for the cookbook; open the fridge
+ *  and he may have a remark. Otherwise he breathes and drops the odd z. */
+export function Basil({ awake, onAsk, onHush, speech }: Props) {
+  const frame = useLoop(6, awake ? 180 : 420)
   const { h } = spriteSize('cat/sleep-0')
   const top = COUNTER_TOP - h + CAT.overhang
-
-  const bubble: Mood | null = speech ? null : disturbed ? 'question' : null
 
   return (
     <>
       <button
         className="basil"
-        style={{ left: CAT.x, top, width: 48, height: h }}
+        style={{ left: CAT.x, top, width: 48, height: h - CAT.overhang }}
         onClick={onAsk}
-        aria-label="Ask Basil what to cook"
+        aria-label="Ask Basil what you can cook"
+        title="Basil — what can I cook?"
       >
         <Sprite k={`cat/sleep-${frame}`} x={0} y={0} />
       </button>
 
-      {/* z z z, drawn in code: three glyphs drifting up on a loop */}
-      {!disturbed && !speech && (
+      {!awake && !speech && (
         <span className="zzz" style={{ left: CAT.x + 34, top: COUNTER_TOP - h - 6 }}>
           <i className="zzz__z zzz__z--a">z</i>
           <i className="zzz__z zzz__z--b">z</i>
@@ -48,20 +41,17 @@ export function Basil({ disturbed, onAsk, onHush, speech, thinking }: Props) {
         </span>
       )}
 
-      {bubble && <Bubble mood={bubble} x={CAT.x + 16} y={COUNTER_TOP - h - 26} />}
+      {awake && !speech && <Bubble mood="question" x={CAT.x + 14} y={COUNTER_TOP - h - 26} />}
 
       {speech && (
         <div
           className="basilsay"
           role="status"
-          style={{ left: CAT.x, bottom: ROOM.h - top + 6 }}
+          style={{ left: CAT.x - 2, bottom: ROOM.h - top + 8 }}
           onClick={onHush}
         >
-          <p className="basilsay__title">{speech.title}</p>
+          <p>{speech.title}</p>
           {speech.detail && <p className="basilsay__dim">{speech.detail}</p>}
-          {speech.quip && <p>{speech.quip}</p>}
-          {/* the full reason is long and shown in the dock; the bubble only says what happened */}
-          {speech.note && <p className="basilsay__note" title={speech.note}>No model, so built-in recipes.</p>}
         </div>
       )}
     </>

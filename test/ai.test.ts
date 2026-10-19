@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { failureMessage, inventoryKey, localMakings, parseText } from '../src/lib/ai'
+import { failureMessage, fromModel, inventoryKey, parseText, suggestMeals } from '../src/lib/ai'
 import { item } from './helpers'
 
 afterEach(() => vi.unstubAllGlobals())
@@ -58,15 +58,31 @@ it('inventoryKey ignores order', () => {
   expect(inventoryKey([a, b])).toBe(inventoryKey([b, a]))
 })
 
-it('localMakings only offers what can be made in full', () => {
-  const names = localMakings([item({ name: 'bread' }), item({ name: 'cheese' })]).map(m => m.name)
-  expect(names).toContain('Cheese on toast')
-  expect(names).not.toContain('Omelette')
+it('suggestMeals comes back empty with a reason when there is no model', async () => {
+  vi.stubGlobal('fetch', reply({ ok: false, reason: 'no-key' }))
+  const out = await suggestMeals([item({ name: 'egg' })], [])
+  expect(out).toMatchObject({ recipes: [], source: 'local' })
+  expect(out.why).toMatch(/No API key/)
 })
 
-it('the offline judge picks the fullest recipe the board makes', async () => {
-  const { judgeCraft } = await import('../src/lib/ai')
+it('suggestMeals turns model meals into recipes', async () => {
+  vi.stubGlobal('fetch', reply({ ok: true, data: { meals: [{
+    name: 'Egg fried rice', serves: 2, minutes: 15, kcal: 450, protein: 16, vegetarian: true, vegan: false,
+    ingredients: [{ item: 'Egg', qty: '2 eggs' }, { item: 'rice', qty: '200g' }], steps: ['fry'],
+  }], line: 'Rice again.' } }))
+  const out = await suggestMeals([item({ name: 'rice' })], [])
+  expect(out.source).toBe('model')
+  expect(out.recipes[0]).toMatchObject({ name: 'Egg fried rice', tags: ['vegetarian'], source: 'basil' })
+  expect(out.recipes[0].ingredients[0].item).toBe('egg')
+})
+
+it('fromModel tags vegan meals as vegetarian too', () => {
+  const r = fromModel({ name: 'Dal', serves: 2, minutes: 30, kcal: 300, protein: 15, vegetarian: false, vegan: true, ingredients: [{ item: 'lentil', qty: '200g' }], steps: ['simmer'] })
+  expect(r.tags).toEqual(['vegetarian', 'vegan'])
+})
+
+it('parseText keeps the quantity out of the label', async () => {
   vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('offline') }))
-  const out = await judgeCraft([item({ name: 'bread' }), item({ name: 'cheddar' })])
-  expect(out.verdict.name).toBe('Cheese on toast')
+  const out = await parseText('two eggs')
+  expect(out.drafts[0]).toMatchObject({ displayName: 'Eggs', name: 'egg', count: 2 })
 })
