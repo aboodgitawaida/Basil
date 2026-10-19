@@ -108,9 +108,14 @@ the build on every push and pull request.
 - [x] **7 — Seasons.** The real date picks the season (flip it in Settings
       for the southern hemisphere). The window and title landscape change:
       spring blossom, deep summer green, orange trees and falling leaves in
-      autumn, snow in winter. The table gets a jar of flowers, a watermelon or
-      a pumpkin, and fairy lights go up along the ceiling in winter. Add
+      autumn, snow in winter. Fairy lights go up along the ceiling in winter. Add
       `?season=winter` (or spring, summer, autumn) to the address to preview.
+- [x] **8 — A working kitchen.** Fridge and freezer doors both open, built
+      by `tools/doors.py` from the closed frame so the body never jumps. Both
+      cupboards open. Food is laid out on real shelves by `src/lib/arrange.ts`
+      (bottles in the door, tall things on the tall shelf, never on top of
+      each other; anything that doesn't fit shows as "+N"). Everything you can
+      click glows a soft yellow. The wall clock tells the real time.
 
 ## The art rules
 

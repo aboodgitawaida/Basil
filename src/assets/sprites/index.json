@@ -299,6 +299,50 @@
   "h": 170,
   "w": 146
  },
+ "fridge/freezer-0": {
+  "w": 70,
+  "h": 60
+ },
+ "fridge/freezer-1": {
+  "w": 46,
+  "h": 60
+ },
+ "fridge/freezer-2": {
+  "w": 18,
+  "h": 60
+ },
+ "fridge/freezer-3": {
+  "w": 34,
+  "h": 64
+ },
+ "fridge/freezer-4": {
+  "w": 68,
+  "h": 64
+ },
+ "fridge/fridge-0": {
+  "w": 70,
+  "h": 92
+ },
+ "fridge/fridge-1": {
+  "w": 46,
+  "h": 92
+ },
+ "fridge/fridge-2": {
+  "w": 18,
+  "h": 92
+ },
+ "fridge/fridge-3": {
+  "w": 34,
+  "h": 96
+ },
+ "fridge/fridge-4": {
+  "w": 68,
+  "h": 96
+ },
+ "fridge/shell": {
+  "w": 76,
+  "h": 166
+ },
  "generic/bag": {
   "h": 22,
   "w": 18
@@ -343,6 +387,10 @@
   "h": 26,
   "w": 26
  },
+ "room/clock-face": {
+  "w": 26,
+  "h": 26
+ },
  "room/counter": {
   "h": 90,
   "w": 52
@@ -354,6 +402,10 @@
  "room/cupboard-carcass": {
   "h": 62,
   "w": 44
+ },
+ "room/cupboard-inside": {
+  "w": 52,
+  "h": 90
  },
  "room/floor": {
   "h": 32,

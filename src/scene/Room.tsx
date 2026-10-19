@@ -1,12 +1,14 @@
+import { useMemo } from 'react'
 import {
-  CAT, CEILING_H, CLOCK, COUNTER, COUNTER_TOP, FLOOR_Y, FRIDGE, KIT_W, KIT_X, LAMP, NOOK, PROPS, ROOM,
+  CAT, CEILING_H, COUNTER, COUNTER_TOP, FLOOR_Y, FRIDGE, KIT_W, KIT_X, LAMP, NOOK, PROPS, ROOM,
 } from '../lib/room'
 import { spriteSize } from '../lib/sprites'
 import { Sprite } from './Sprite'
 import { Fridge, FRIDGE_FRAMES } from './Fridge'
-import { Pantry, PANTRY_FRAMES } from './Pantry'
+import { Cupboard, PANTRY_FRAMES } from './Pantry'
 import { Window } from './Window'
-import { Shelves } from './Shelves'
+import { WallClock } from './Clock'
+import { arrange } from '../lib/arrange'
 import { useSteps } from '../lib/useSteps'
 import type { Item } from '../lib/schema'
 import type { Sky } from '../lib/weather'
@@ -19,9 +21,13 @@ import type { Season } from '../lib/seasons'
 
 type Props = {
   fridgeOpen: boolean
-  cupboardOpen: boolean
+  freezerOpen: boolean
+  cupboardOpen: readonly [boolean, boolean]
   onFridge: () => void
-  onCupboard: () => void
+  onFreezer: () => void
+  onCupboard: (n: 0 | 1) => void
+  /** "+N more": open the kitchen list */
+  onMore: () => void
   items: Item[]
   itemHandlers: {
     onPointerDown: (item: Item, e: React.PointerEvent) => void
@@ -59,12 +65,15 @@ export function Shadow({ x, w, y, soft = false }: { x: number; w: number; y: num
 const BEYOND = 2000
 
 export function Room({
-  fridgeOpen, cupboardOpen, onFridge, onCupboard, items, itemHandlers, draggingId,
+  fridgeOpen, freezerOpen, cupboardOpen, onFridge, onFreezer, onCupboard, onMore, items, itemHandlers, draggingId,
   now, night, sky, season, lampOn, onLamp, onAskBasil, onHushBasil, basilSpeech, basilAwake, say,
 }: Props) {
   const cat = spriteSize('cat/sleep-0')
   const fridgeFrame = useSteps(fridgeOpen, FRIDGE_FRAMES, 55)
-  const pantryFrame = useSteps(cupboardOpen, PANTRY_FRAMES, 50)
+  const freezerFrame = useSteps(freezerOpen, FRIDGE_FRAMES, 55)
+  const leftFrame = useSteps(cupboardOpen[0], PANTRY_FRAMES, 50)
+  const rightFrame = useSteps(cupboardOpen[1], PANTRY_FRAMES, 50)
+  const arrangement = useMemo(() => arrange(items), [items])
 
   // indoors: dark only when it is dark outside, and much less with the lamp on
   const dark = night * (lampOn ? 0.28 : 0.78)
@@ -86,10 +95,10 @@ export function Room({
         <i className="room__cord" style={{ left: LAMP.cordX, top: CEILING_H, height: LAMP.shadeY - CEILING_H }} />
         <Sprite k="room/pendant" x={LAMP.x} y={LAMP.shadeY} />
 
-        <Sprite k="room/clock" x={CLOCK.x} y={CLOCK.y} />
+        <WallClock now={now} />
 
         <button
-          className="hit hit--glow"
+          className="hit interact"
           style={{ left: 106, top: 128, width: 14, height: 22 }}
           onClick={onLamp}
           aria-label={lampOn ? 'Turn the lamp off' : 'Turn the lamp on'}
@@ -98,14 +107,14 @@ export function Room({
           <Sprite k={lampOn ? 'room/switch-on' : 'room/switch-off'} x={0} y={0} />
         </button>
 
-        <Pantry frame={pantryFrame} open={cupboardOpen} onToggle={onCupboard}>
-          <Shelves where="cupboard" frame={pantryFrame} items={items} draggingId={draggingId} {...itemHandlers} />
-        </Pantry>
-        <Sprite k="room/counter-drawers" x={COUNTER.x + COUNTER.w} bottom={FLOOR_Y} />
+        <Cupboard n={0} frame={leftFrame} open={cupboardOpen[0]} onToggle={() => onCupboard(0)}
+          arrangement={arrangement} draggingId={draggingId} onMore={onMore} showMore={!cupboardOpen[1]} {...itemHandlers} />
+        <Cupboard n={1} frame={rightFrame} open={cupboardOpen[1]} onToggle={() => onCupboard(1)}
+          arrangement={arrangement} draggingId={draggingId} onMore={onMore} showMore {...itemHandlers} />
         <i className="room__worktop" style={{ left: COUNTER.x, top: COUNTER_TOP, width: COUNTER.w * COUNTER.units }} />
 
         <Shadow x={CAT.x + 4} w={cat.w - 10} y={COUNTER_TOP} soft />
-        <Basil awake={fridgeOpen || basilAwake} onAsk={onAskBasil} onHush={onHushBasil} speech={basilSpeech} />
+        <Basil awake={fridgeOpen || freezerOpen || basilAwake} onAsk={onAskBasil} onHush={onHushBasil} speech={basilSpeech} />
 
         {PROPS.map(([k, x]) => (
           <span key={k}>
@@ -116,9 +125,13 @@ export function Room({
 
         <Shadow x={FRIDGE.right - FRIDGE.w} w={FRIDGE.w} y={FLOOR_Y} />
 
-        <Fridge frame={fridgeFrame} open={fridgeOpen} onToggle={onFridge}>
-          <Shelves where="fridge" frame={fridgeFrame} items={items} draggingId={draggingId} {...itemHandlers} />
-        </Fridge>
+        <Fridge
+          fridgeFrame={fridgeFrame} freezerFrame={freezerFrame}
+          fridgeOpen={fridgeOpen} freezerOpen={freezerOpen}
+          onFridge={onFridge} onFreezer={onFreezer}
+          arrangement={arrangement} draggingId={draggingId} onMore={onMore}
+          {...itemHandlers}
+        />
 
         {say && <Bubble mood={say} x={CAT.x + 14} y={COUNTER_TOP - cat.h - 26} />}
       </div>
