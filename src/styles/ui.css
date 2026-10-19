@@ -443,3 +443,12 @@ button.sv-row:hover { background: #fff8e2; border-color: var(--sv-wood); }
   .toast { top: auto; bottom: 108px; }
   .sv-modal__body { padding: 15px 15px 18px; }
 }
+
+/* ---- shopping list ---- */
+.cook__cardwrap { position: relative; display: grid; }
+.cook__list { position: absolute; right: 9px; bottom: 9px; min-height: 30px; padding: 3px 9px; font-size: 12px; }
+.shop__row { gap: 9px; }
+.shop__row .sv-check { padding: 3px; }
+.shop__row--done { opacity: 0.6; }
+.shop__row--done .sv-row__name { text-decoration: line-through; }
+.cook__cardwrap .cook__card--short { padding-bottom: 45px; }
