@@ -234,7 +234,7 @@
   padding: 8px 12px;
   background: var(--umber);
   border: 2px solid var(--wood-light);
-  z-index: 30;
+  z-index: 10; /* under the sheets, so it never covers the book or a card */
 }
 .toast__undo { color: var(--gold); text-decoration: underline; }
 

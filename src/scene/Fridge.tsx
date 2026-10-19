@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { FRIDGE } from '../lib/room'
 import { Sprite } from './Sprite'
+import { spriteSize } from '../lib/sprites'
 
 /** The pack ships five frames of door swing. */
 export const FRIDGE_FRAMES = 5
@@ -9,6 +10,8 @@ type Props = { frame: number; open: boolean; onToggle: () => void; children?: Re
 
 export function Fridge({ frame, open, onToggle, children }: Props) {
   const { right, y, w, h } = FRIDGE
+  // the open door swings out to the left of the body; it closes the fridge too
+  const swing = spriteSize(`fridge/door-${frame}`).w - w
 
   return (
     <>
@@ -28,6 +31,14 @@ export function Fridge({ frame, open, onToggle, children }: Props) {
         data-drop={open ? 'fridge' : undefined}
         style={{ left: right - w, top: y, width: w, height: h }}
       />
+      {open && swing > 0 && (
+        <button
+          className="hit"
+          onClick={onToggle}
+          aria-label="Shut the fridge door"
+          style={{ left: right - w - swing, top: y, width: swing, height: h }}
+        />
+      )}
       {children}
     </>
   )

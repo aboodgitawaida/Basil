@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { daysLeft, guessCategory, guessExpiry, guessLocation, isGoingOff, newId } from '../src/lib/schema'
+import { covers, daysLeft, guessCategory, guessExpiry, guessLocation, isGoingOff, newId } from '../src/lib/schema'
 import { item } from './helpers'
 
 describe('guessCategory', () => {
@@ -82,4 +82,14 @@ it('drinks are matched as whole words', () => {
   expect(guessCategory('apple juice')).toBe('drink')
   expect(guessCategory('watermelon')).toBe('produce')
   expect(guessCategory('hot chocolate')).toBe('snack')
+})
+
+describe('covers', () => {
+  it('matches loosely and by kind', () => {
+    expect(covers('cheddar cheese', 'cheese')).toBe(true)
+    expect(covers('cheddar', 'cheese')).toBe(true)
+    expect(covers('chicken', 'drumstick')).toBe(true)
+    expect(covers('milk', 'cheese')).toBe(false)
+    expect(covers('', 'cheese')).toBe(false)
+  })
 })

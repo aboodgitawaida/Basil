@@ -60,7 +60,8 @@ export function Basil({ disturbed, onAsk, onHush, speech, thinking }: Props) {
           <p className="basilsay__title">{speech.title}</p>
           {speech.detail && <p className="basilsay__dim">{speech.detail}</p>}
           {speech.quip && <p>{speech.quip}</p>}
-          {speech.note && <p className="basilsay__note">{speech.note} Built-in recipes.</p>}
+          {/* the full reason is long and shown in the dock; the bubble only says what happened */}
+          {speech.note && <p className="basilsay__note" title={speech.note}>No model, so built-in recipes.</p>}
         </div>
       )}
     </>

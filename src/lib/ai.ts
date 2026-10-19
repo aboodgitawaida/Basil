@@ -1,6 +1,6 @@
 import type { Draft } from './inventory'
 import { keywordParse } from './keywordParser'
-import type { Category, Item, Location } from './schema'
+import { covers, type Category, type Item, type Location } from './schema'
 
 export type AiStatus = { provider: string; model: string; configured: boolean }
 
@@ -171,7 +171,7 @@ function localSuggest(items: Item[]): Meal[] {
     .map(r => ({
       name: r.name,
       ingredients: r.needs,
-      missing: r.needs.filter(n => ![...have].some(h => h.includes(n) || n.includes(h))),
+      missing: r.needs.filter(n => ![...have].some(h => covers(h, n))),
       steps: r.steps,
       minutes: r.minutes,
       usesSoon: [],
@@ -182,7 +182,10 @@ function localSuggest(items: Item[]): Meal[] {
 
 function localCraft(items: Item[]): Verdict {
   const names = items.map(i => i.name)
-  const hit = LOCAL_RECIPES.find(r => r.needs.every(n => names.some(h => h.includes(n) || n.includes(h))))
+  // most specific first, so bread and cheese is cheese on toast, not buttered toast
+  const hit = [...LOCAL_RECIPES]
+    .sort((a, b) => b.needs.length - a.needs.length)
+    .find(r => r.needs.every(n => names.some(h => covers(h, n))))
   if (hit) return { name: hit.name, ok: true, steps: hit.steps, minutes: hit.minutes }
   return {
     name: names.length > 1 ? `${names.slice(0, 2).join(' and ')}, together` : names[0] ?? 'nothing',

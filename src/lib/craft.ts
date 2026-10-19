@@ -1,5 +1,5 @@
 import type { AppState, CookedMeal, Item } from './schema'
-import { newId } from './schema'
+import { covers, newId } from './schema'
 import { spendItems } from './inventory'
 
 export const SLOTS = 9
@@ -66,7 +66,7 @@ export function book(state: AppState): BookEntry[] {
     if (seen.has(meal.name.toLowerCase())) continue
     seen.add(meal.name.toLowerCase())
     const missing = meal.ingredients.filter(
-      need => !have.some(h => h.includes(need) || need.includes(h)),
+      need => !have.some(h => covers(h, need)),
     )
     out.push({ meal, have: meal.ingredients.filter(n => !missing.includes(n)), missing })
   }
