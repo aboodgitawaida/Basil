@@ -3,9 +3,11 @@ import { SKY, arc, arcHeight, phaseAt, type Phase } from '../lib/daylight'
 import { spriteUrl } from '../lib/sprites'
 import { useLoop } from '../lib/useLoop'
 import { Zoom } from './kit'
+import { LAND, SEASON_LABEL, type Season } from '../lib/seasons'
 
 type Props = {
   hasSave: boolean
+  season: Season
   onStart: () => void
   onSettings: () => void
   onCredits: () => void
@@ -17,7 +19,9 @@ const H = 135
 /** Hills, trees and a cottage, drawn once at a tiny size and scaled up with
  *  nearest-neighbour so every pixel is a hard square. The sky is the real
  *  time of day, the same as the kitchen window. */
-function paint(c: HTMLCanvasElement, phase: Phase, now: Date) {
+function paint(c: HTMLCanvasElement, phase: Phase, now: Date, season: Season) {
+  const land = LAND[season]
+  const winter = season === 'winter'
   const g = c.getContext('2d')!
   const [top, mid, low] = SKY[phase]
   const night = phase === 'night' || phase === 'dusk'
@@ -49,21 +53,29 @@ function paint(c: HTMLCanvasElement, phase: Phase, now: Date) {
     const f = (v: number) => Math.round(v * dim).toString(16).padStart(2, '0')
     return `#${f(n >> 16)}${f((n >> 8) & 255)}${f(n & 255)}`
   }
-  hill(86, 8, 30, 1, shade('#7fa36a'))
-  hill(98, 6, 22, 3, shade('#5f8a45'))
+  hill(86, 8, 30, 1, shade(land.far))
+  hill(98, 6, 22, 3, shade(land.near))
 
-  // trees along the back ridge
+  // trees along the back ridge, dressed for the season
   for (let i = 0; i < 14; i++) {
     const x = (i * 41 + 7) % W, y = 92 - ((i * 7) % 6)
-    g.fillStyle = shade('#3f6b2f'); g.fillRect(x - 3, y - 9, 7, 9); g.fillRect(x - 2, y - 12, 5, 3); g.fillRect(x - 1, y - 14, 3, 2)
-    g.fillStyle = shade('#5a3a22'); g.fillRect(x, y, 1, 3)
+    g.fillStyle = shade(i % 3 === 0 && season === 'autumn' ? '#d8a23a' : land.tree)
+    g.fillRect(x - 3, y - 9, 7, 9); g.fillRect(x - 2, y - 12, 5, 3); g.fillRect(x - 1, y - 14, 3, 2)
+    if (winter) { g.fillStyle = shade('#ffffff'); g.fillRect(x - 1, y - 14, 3, 1); g.fillRect(x - 2, y - 12, 5, 1); g.fillRect(x - 3, y - 9, 7, 1) }
+    if (season === 'spring') { g.fillStyle = shade(land.dot); g.fillRect(x - 2, y - 8, 1, 1); g.fillRect(x + 1, y - 11, 1, 1); g.fillRect(x + 2, y - 5, 1, 1) }
+    g.fillStyle = shade(land.trunk); g.fillRect(x, y, 1, 3)
   }
-  hill(112, 5, 18, 5, shade('#6fae47'))
+  hill(112, 5, 18, 5, shade(winter ? '#f2f6f7' : season === 'autumn' ? '#a8823a' : season === 'summer' ? '#5f9a3e' : '#7cba4e'))
+  // flowers in the meadow, leaves on the ground, or glints in the snow
+  for (let i = 0; i < 70; i++) {
+    g.fillStyle = shade(i % 2 ? land.dot : land.dot2)
+    g.fillRect((i * 67) % W, 108 + ((i * 29) % 26), 1, 1)
+  }
 
   // the cottage the kitchen is in
   const cx = 150, cy = 104
   g.fillStyle = shade('#e8c99a'); g.fillRect(cx, cy, 30, 16)
-  g.fillStyle = shade('#a8452f'); for (let r = 0; r < 9; r++) g.fillRect(cx - 3 + r, cy - 1 - r, 36 - r * 2, 1)
+  g.fillStyle = shade(winter ? '#f4f8f9' : '#a8452f'); for (let r = 0; r < 9; r++) g.fillRect(cx - 3 + r, cy - 1 - r, 36 - r * 2, 1)
   g.fillStyle = shade('#7a5742'); g.fillRect(cx + 4, cy + 6, 6, 10)
   g.fillStyle = night ? '#f2c14e' : shade('#7fb6d9'); g.fillRect(cx + 17, cy + 5, 8, 6)
   g.fillStyle = shade('#5e4440'); g.fillRect(cx + 24, cy - 12, 4, 6)
@@ -74,18 +86,40 @@ function paint(c: HTMLCanvasElement, phase: Phase, now: Date) {
   g.fillStyle = shade('#8f6a45')
   for (let x = 0; x < 120; x += 6) g.fillRect(x, 118, 1, 6)
   g.fillRect(0, 120, 120, 1)
-  hill(132, 2, 12, 2, shade('#4f8a2a'))
+  hill(132, 2, 12, 2, shade(winter ? '#dfe9ec' : season === 'autumn' ? '#8a6a2e' : '#4f8a2a'))
 }
 
-export function TitleScreen({ hasSave, onStart, onSettings, onCredits }: Props) {
+/** Things drifting across the title: blossom, autumn leaves or snow. */
+function Drift({ season }: { season: Season }) {
+  if (season === 'summer') return null
+  return (
+    <>
+      {Array.from({ length: 16 }, (_, n) => (
+        <i key={n} className="title__drift" style={{
+          left: `${(n * 37) % 100}%`,
+          animationDuration: `${9 + (n * 7) % 9}s`,
+          animationDelay: `-${(n * 13) % 17}s`,
+        }}>
+          {season === 'autumn'
+            ? <img src={spriteUrl(`weather/leaf-${(n % 4) + 1}`)} alt="" style={{ width: 24 }} />
+            : season === 'winter'
+              ? <img src={spriteUrl('weather/snowflake')} alt="" style={{ width: n % 2 ? 18 : 12 }} />
+              : <i className="title__petal" style={{ background: n % 2 ? '#f4b6c8' : '#fff4f0' }} />}
+        </i>
+      ))}
+    </>
+  )
+}
+
+export function TitleScreen({ hasSave, season, onStart, onSettings, onCredits }: Props) {
   const canvas = useRef<HTMLCanvasElement>(null)
   const now = new Date()
   const phase = phaseAt(now)
   const frame = useLoop(6, 420)
 
   useEffect(() => {
-    if (canvas.current) paint(canvas.current, phase, new Date())
-  }, [phase])
+    if (canvas.current) paint(canvas.current, phase, new Date(), season)
+  }, [phase, season])
 
   const night = phase === 'night' || phase === 'dusk'
 
@@ -97,11 +131,13 @@ export function TitleScreen({ hasSave, onStart, onSettings, onCredits }: Props) 
           style={{ top: `${6 + n * 7}%`, width: 27 * (n % 2 ? 6 : 4), animationDuration: `${70 + n * 23}s`, animationDelay: `-${n * 19}s` }} />
       ))}
 
+      <Drift season={season} />
+
       <div className="title__inner">
         <div className="title__sign">
           <span className="title__cat"><Zoom k={`cat/sleep-${frame}`} scale={3} /></span>
           <h1 className="title__logo">B<span>a</span>sil</h1>
-          <p className="title__tag sv-wood">a cosy kitchen, and the cat who runs it</p>
+          <p className="title__tag sv-wood">a cosy kitchen, and the cat who runs it · {SEASON_LABEL[season].toLowerCase()}</p>
         </div>
         <nav className="title__menu">
           <button className="sv-btn sv-btn--big sv-btn--go" onClick={onStart} autoFocus>{hasSave ? 'Continue' : 'Start'}</button>

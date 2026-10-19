@@ -1,11 +1,12 @@
 import { useState, type RefObject } from 'react'
 import { SKY, arc, arcHeight, clockText, phaseAt, GREETING } from '../lib/daylight'
 import type { Sky } from '../lib/weather'
+import { SEASON_LABEL, type Season } from '../lib/seasons'
 
 const WEATHER: Record<Sky, string> = { clear: 'clear', cloud: 'cloudy', rain: 'raining', snow: 'snowing' }
 
 /** The date-and-time box in the top corner, from the real clock. */
-export function Clock({ now, sky }: { now: Date; sky: Sky }) {
+export function Clock({ now, sky, season }: { now: Date; sky: Sky; season: Season }) {
   const { day, time } = clockText(now)
   const phase = phaseAt(now)
   const { body, t } = arc(now)
@@ -15,6 +16,7 @@ export function Clock({ now, sky }: { now: Date; sky: Sky }) {
     <div className="hud__clock sv-frame" aria-label={`${day}, ${time}`}>
       <div className="hud__clock-day">
         <span>{day}</span>
+        <span className={`hud__season hud__season--${season}`}>{SEASON_LABEL[season]}</span>
         <span className="hud__dial" aria-hidden>
           <i className="hud__dial-sky" style={{ background: SKY[phase][1] }} />
           <i className="hud__dial-body" style={{ left: x, top: y, background: body === 'sun' ? '#ffe27a' : '#eef0dc' }} />

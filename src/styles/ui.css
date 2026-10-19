@@ -198,6 +198,16 @@
 .title__land { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
 .title__cloud { position: absolute; image-rendering: pixelated; animation: titlecloud linear infinite; }
 @keyframes titlecloud { from { transform: translateX(-30vw); } to { transform: translateX(130vw); } }
+.title__drift { position: absolute; top: -40px; line-height: 0; pointer-events: none; animation: titledrift linear infinite; }
+.title__drift img { image-rendering: pixelated; }
+.title__petal { display: block; width: 9px; height: 6px; }
+@keyframes titledrift {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(30px, 27vh); }
+  50%  { transform: translate(-12px, 54vh); }
+  75%  { transform: translate(36px, 81vh); }
+  100% { transform: translate(6px, 110vh); }
+}
 .title__inner {
   position: relative;
   display: flex;
@@ -237,13 +247,18 @@
   position: absolute;
   right: 18px;
   top: 18px;
-  width: 216px;
+  width: 258px;
   padding: 9px 12px 12px;
   text-align: center;
 }
 .hud__clock-day { display: flex; justify-content: space-between; align-items: center; padding: 3px 6px 9px; border-bottom: 3px solid var(--sv-paper-deep); }
 .hud__clock-time { padding-top: 9px; font: 36px/1 'TinyRPG', monospace; }
 .hud__clock-phase { margin-top: 6px; color: var(--sv-ink-dim); }
+.hud__season { padding: 3px 6px; font-size: 12px; color: #fff3e0; border: 2px solid var(--sv-outline); }
+.hud__season--spring { background: #c0648a; }
+.hud__season--summer { background: #4f8a2a; }
+.hud__season--autumn { background: #c56b2e; }
+.hud__season--winter { background: #4d7ea0; }
 .hud__dial { position: relative; width: 48px; height: 27px; overflow: hidden; }
 .hud__dial-sky { position: absolute; inset: 0; border: 3px solid var(--sv-outline); border-bottom: 0; border-radius: 27px 27px 0 0; }
 .hud__dial-body { position: absolute; width: 9px; height: 9px; border: 2px solid var(--sv-outline); }
@@ -413,6 +428,7 @@ button.sv-row:hover { background: #fff8e2; border-color: var(--sv-wood); }
   .recipe__stats { grid-template-columns: repeat(2, 1fr); }
   .hud__clock { width: 168px; right: 9px; top: 9px; }
   .hud__clock-time { font-size: 24px; }
+  .hud__dial { display: none; }
   .hud__menu { max-width: calc(100vw - 190px); left: 9px; top: 9px; }
   .hud__menu .sv-btn { padding: 6px 9px; min-height: 42px; }
   .title__logo { font-size: 72px; }
