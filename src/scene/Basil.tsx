@@ -24,7 +24,7 @@ export function Basil({ awake, onAsk, onHush, speech }: Props) {
   return (
     <>
       <button
-        className="basil"
+        className="basil interact"
         style={{ left: CAT.x, top, width: 48, height: h - CAT.overhang }}
         onClick={onAsk}
         aria-label="Ask Basil what you can cook"

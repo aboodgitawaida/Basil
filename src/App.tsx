@@ -43,7 +43,8 @@ export function App() {
   const [overlay, setOverlay] = useState<Overlay>(null)
   const [view, setView] = useState(() => layout(window.innerWidth, window.innerHeight))
   const [fridgeOpen, setFridgeOpen] = useState(false)
-  const [cupboardOpen, setCupboardOpen] = useState(false)
+  const [freezerOpen, setFreezerOpen] = useState(false)
+  const [cupboardOpen, setCupboardOpen] = useState<readonly [boolean, boolean]>([false, false])
   const [picked, setPicked] = useState<string | null>(null)
   const [pending, setPending] = useState<ParseOutcome | null>(null)
   const [busy, setBusy] = useState(false)
@@ -56,7 +57,7 @@ export function App() {
   const now = useNow()
   const debug = new URLSearchParams(window.location.search).has('debug')
   const { state, loaded, apply, applyQuiet, undo, undoable, dismissUndo } = useStore()
-  const basil = useBasil(state.items, fridgeOpen)
+  const basil = useBasil(state.items, fridgeOpen || freezerOpen)
   const settings = state.settings
 
   useEffect(() => {
@@ -168,7 +169,10 @@ export function App() {
             fridgeOpen={fridgeOpen}
             cupboardOpen={cupboardOpen}
             onFridge={() => setFridgeOpen(o => { sound.play(o ? 'fridgeClose' : 'fridgeOpen'); return !o })}
-            onCupboard={() => setCupboardOpen(o => { sound.play('cupboard'); return !o })}
+            freezerOpen={freezerOpen}
+            onFreezer={() => setFreezerOpen(o => { sound.play(o ? 'fridgeClose' : 'fridgeOpen'); return !o })}
+            onCupboard={n => { sound.play('cupboard'); setCupboardOpen(o => (n === 0 ? [!o[0], o[1]] : [o[0], !o[1]])) }}
+            onMore={() => setOverlay('pantry')}
             items={state.items}
             itemHandlers={handlers}
             draggingId={drag?.item.id}
