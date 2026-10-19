@@ -57,6 +57,8 @@ export type Settings = {
   lamp: boolean | null
   /** ask the browser for a location so the window shows the real weather */
   weather: boolean
+  /** seasons run the other way round: summer at Christmas */
+  south?: boolean
   lat?: number
   lon?: number
 }

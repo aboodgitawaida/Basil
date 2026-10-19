@@ -95,10 +95,9 @@
 .win__band { position: absolute; left: 0; right: 0; bottom: 0; }
 .win__far  { position: absolute; left: 0; right: 0; bottom: 8px; height: 7px; background: var(--green); }
 .win__near { position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: var(--green-dark); }
-.win__far--night, .win__far--dusk  { background: #2b3a2e; }
-.win__near--night, .win__near--dusk { background: #1c261e; }
-.win__far--evening, .win__far--dawn { background: #6f7a3e; }
-.win__near--evening, .win__near--dawn { background: #4a5530; }
+.win__tree { position: absolute; bottom: 13px; width: 5px; height: 6px; }
+.win__tree > i { position: absolute; left: 2px; bottom: -2px; width: 1px; height: 2px; }
+.win__dot { position: absolute; width: 1px; height: 1px; }
 .win__house { position: absolute; left: 36px; bottom: 13px; width: 7px; height: 5px; background: var(--wood-darkest);
               box-shadow: 0 -2px 0 -1px var(--red-dark); }
 .win__house-light { position: absolute; left: 38px; bottom: 14px; width: 2px; height: 2px; background: var(--gold); }
@@ -288,6 +287,16 @@
 /* ---- weather in the pane ---- */
 .fall { position: absolute; top: 0; line-height: 0; animation-name: fall; animation-timing-function: linear; animation-iteration-count: infinite; }
 .fall--snow { animation-name: fallsnow; }
+.fall--drift { animation-name: falldrift; }
+@keyframes falldrift {
+  from { transform: translateY(-10px) translateX(0); }
+  25%  { transform: translateY(20%) translateX(4px); }
+  50%  { transform: translateY(45%) translateX(-2px); }
+  75%  { transform: translateY(70%) translateX(5px); }
+  to   { transform: translateY(100%) translateX(0); }
+}
+.petal { display: block; width: 2px; height: 1px; background: #f4b6c8; }
+.petal--white { background: #fff4f0; }
 @keyframes fall { from { transform: translateY(-30px); } to { transform: translateY(100%); } }
 @keyframes fallsnow {
   from { transform: translateY(-10px) translateX(0); }
@@ -295,3 +304,19 @@
   to   { transform: translateY(100%) translateX(0); }
 }
 
+
+/* ---- seasonal touches ---- */
+.nook__vase { position: absolute; width: 7px; height: 14px; }
+.nook__stem { position: absolute; bottom: 4px; width: 1px; background: var(--green); }
+.nook__bloom { position: absolute; width: 2px; height: 2px; box-shadow: 0 0 0 1px rgb(0 0 0 / 0.15); }
+.nook__jar { position: absolute; left: 0; bottom: 0; width: 7px; height: 5px; background: var(--mint);
+  box-shadow: inset 1px 0 0 var(--ice), inset -1px 0 0 var(--blue-light), 0 0 0 1px var(--ink); }
+
+.lights { position: absolute; height: 8px; pointer-events: none; z-index: 5;
+  /* the wire, dipping between bulbs */
+  background: linear-gradient(var(--umber), var(--umber)) 0 4px / 100% 1px no-repeat; }
+.lights__bulb { position: absolute; width: 2px; height: 2px; animation: twinkle 1800ms steps(2) infinite; }
+.lights__bulb--0 { background: #f2c14e; }
+.lights__bulb--1 { background: #e0645a; animation-delay: 450ms; }
+.lights__bulb--2 { background: #86d07a; animation-delay: 900ms; }
+.lights__bulb--3 { background: #7fb6e3; animation-delay: 1350ms; }

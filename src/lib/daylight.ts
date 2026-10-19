@@ -19,7 +19,7 @@ export function phaseAt(d = new Date()): Phase {
   const h = d.getHours() + d.getMinutes() / 60
   if (h < 5 || h >= 21) return 'night'
   if (h < 7) return 'dawn'
-  if (h < 11) return 'morning'
+  if (h < 12) return 'morning'
   if (h < 17) return 'day'
   if (h < 19) return 'evening'
   return 'dusk'

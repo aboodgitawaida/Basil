@@ -20,6 +20,7 @@ import { PantryList } from './ui/PantryList'
 import { TitleScreen } from './ui/TitleScreen'
 import { Modal } from './ui/kit'
 import { nightLevel } from './lib/daylight'
+import { seasonAt, seasonOverride } from './lib/seasons'
 import { fetchSky, type Sky } from './lib/weather'
 import { sound } from './lib/sound'
 import type { Mood } from './scene/Bubble'
@@ -88,6 +89,7 @@ export function App() {
 
   // the sky is the real clock; the lamp switches itself on after dark unless told
   const night = nightLevel(now)
+  const season = seasonOverride() ?? seasonAt(now, settings.south)
   const lampOn = settings.lamp ?? night > 0.3
 
   const setSettings = (next: SettingsT) => applyQuiet(s => ({ ...s, settings: next }))
@@ -144,6 +146,7 @@ export function App() {
       <>
         <TitleScreen
           hasSave={hasSave}
+          season={season}
           onStart={() => { sound.play('cook', 0.35); setScreen('game') }}
           onSettings={() => setOverlay('settings')}
           onCredits={() => setOverlay('credits')}
@@ -172,6 +175,7 @@ export function App() {
             now={now}
             night={night}
             sky={sky}
+            season={season}
             lampOn={lampOn}
             onLamp={() => { sound.play('toggle'); setSettings({ ...settings, lamp: !lampOn }) }}
             onAskBasil={() => { sound.play('place', 0.35); basil.hush(); setOverlay('cookbook') }}
@@ -202,7 +206,7 @@ export function App() {
           <button className="sv-btn" onClick={() => setOverlay('pantry')}>kitchen{state.items.length ? ` (${state.items.length})` : ''}</button>
           <button className="sv-btn sv-btn--go" onClick={() => setOverlay('cookbook')}>cookbook</button>
         </nav>
-        <Clock now={now} sky={sky} />
+        <Clock now={now} sky={sky} season={season} />
 
         {firstRun && !overlay && !pending && (
           <p className="hud__tip sv-frame sv-small" style={{ top: 18 }}>
