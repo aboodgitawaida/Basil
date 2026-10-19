@@ -105,6 +105,12 @@ the build on every push and pull request.
       one). Shopping reads as "Eggs, ×2" rather than "two eggs"; buying more
       tops up what is there. The sky always follows your own clock; the switch
       only works the lamp.
+- [x] **7 — Seasons.** The real date picks the season (flip it in Settings
+      for the southern hemisphere). The window and title landscape change:
+      spring blossom, deep summer green, orange trees and falling leaves in
+      autumn, snow in winter. The table gets a jar of flowers, a watermelon or
+      a pumpkin, and fairy lights go up along the ceiling in winter. Add
+      `?season=winter` (or spring, summer, autumn) to the address to preview.
 
 ## The art rules
 
