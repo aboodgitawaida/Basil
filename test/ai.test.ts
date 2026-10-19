@@ -63,3 +63,10 @@ it('localMakings only offers what can be made in full', () => {
   expect(names).toContain('Cheese on toast')
   expect(names).not.toContain('Omelette')
 })
+
+it('the offline judge picks the fullest recipe the board makes', async () => {
+  const { judgeCraft } = await import('../src/lib/ai')
+  vi.stubGlobal('fetch', vi.fn(async () => { throw new TypeError('offline') }))
+  const out = await judgeCraft([item({ name: 'bread' }), item({ name: 'cheddar' })])
+  expect(out.verdict.name).toBe('Cheese on toast')
+})

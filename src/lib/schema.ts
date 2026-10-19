@@ -127,6 +127,23 @@ export function guessCategory(name: string, raw = ''): Category {
   return 'other'
 }
 
+/** Specific things that count as a general ingredient: a recipe that wants
+ *  cheese is happy with cheddar. */
+const KINDS: Record<string, string[]> = {
+  cheese: ['cheddar', 'brie', 'feta', 'gouda', 'parmesan', 'mozzarella', 'halloumi', 'stilton'],
+  bread: ['loaf', 'baguette', 'sourdough', 'bagel', 'bap', 'roll'],
+  drumstick: ['chicken'],
+  steak: ['beef', 'sirloin', 'ribeye'],
+}
+
+/** Whether something in the kitchen covers what a recipe needs. Loose on
+ *  purpose: "cheddar cheese" covers "cheese", and so does plain "cheddar". */
+export function covers(have: string, need: string): boolean {
+  if (!have || !need) return false
+  if (have.includes(need) || need.includes(have)) return true
+  return (KINDS[need] ?? []).some(k => have.includes(k))
+}
+
 /** Items within this many days of their guessed expiry get a quiet visual cue. */
 export const SOON_DAYS = 3
 
