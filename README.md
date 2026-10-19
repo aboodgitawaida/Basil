@@ -30,7 +30,7 @@ GEMINI_API_KEY=...
 
 That is the whole setup. The key is read in `server/config.ts`, used only in
 `server/providers.ts`, and never reaches the browser — the client talks to
-`/api/parse`, `/api/suggest` and `/api/craft` on its own origin, and the build
+`/api/parse` and `/api/suggest` on its own origin, and the build
 output contains no mention of it.
 
 **To switch provider**, edit `server/config.ts` — it is the only file that
@@ -90,19 +90,28 @@ the build on every push and pull request.
       everything.
 - [x] **3 — Model parsing.** Gemini (or Groq) behind a server-side proxy,
       strict JSON validation, keyword fallback, preview before anything saves.
-- [x] **4 — Crafting.** A 3x3 board on the worktop, live output preview,
-      cooking spends ingredients, recipe book of what you have made and what
-      you could.
+- [x] **4 — Crafting.** A 3x3 board on the worktop (replaced in phase 6 by
+      Basil's cookbook).
 - [x] **5 — Atmosphere.** Basil, day/night lighting on a real clock with a
       wall switch, live weather in the window, sound (muted by default),
       emotion bubbles, credits.
+- [x] **6 — A proper game.** Title screen (start / settings / credits) and
+      wooden, parchment menus throughout. The room is wider, with a dining
+      nook, and its wall and floor run to the screen edges. The crafting board
+      is gone: clicking Basil opens his cookbook, about forty built-in
+      recipes with calories and protein, tick boxes for high protein, low
+      calorie, quick, vegetarian, vegan and food going off, and the full method
+      a click away. Cooking from it uses up the right amount (three eggs, not
+      one). Shopping reads as "Eggs, ×2" rather than "two eggs"; buying more
+      tops up what is there. The sky always follows your own clock; the switch
+      only works the lamp.
 
 ## The art rules
 
 These are enforced, not aspirational:
 
 - **One art pixel = one centimetre.** The room is authored in centimetres
-  (192 × 240, see `src/lib/room.ts`): a 90cm counter is 90px tall, a cat is
+  (296 × 240, see `src/lib/room.ts`): a 90cm counter is 90px tall, a cat is
   43px long, a wall clock is 26px. Objects are sized by what they *are*, not
   by whatever their source frame happened to be. The whole scene is then
   scaled by a single integer to fit the viewport, never below 2×.
@@ -120,8 +129,8 @@ These are enforced, not aspirational:
 - **One outline treatment.** Every object sprite gets a 1px ink edge: the
   artist's own outline is recoloured where there is one, a ring is added where
   there isn't.
-- **One font**, TinyRPG Fine Fantasy Strategies, at **12px or 24px only**. Its
-  design grid is 12px; any other size renders blurry.
+- **One font**, TinyRPG Fine Fantasy Strategies, at **multiples of 12px only** (12, 24, 36, 48…).
+  Its design grid is 12px; any other size renders blurry.
 - No anti-aliasing, blur, soft shadows, or CSS-rounded corners. Gradients use
   hard colour stops; tapered shapes are built from stepped rectangles, because
   a diagonal `clip-path` would anti-alias.

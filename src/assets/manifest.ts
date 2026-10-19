@@ -45,6 +45,9 @@ const DIRECT: Record<string, string> = {
   lemonade: 'food/can-3', soda: 'food/can-2',
   // produce
   apple: 'food/apple', pear: 'food/pear', broccoli: 'food/broccoli',
+  lettuce: 'food/broccoli', spinach: 'food/broccoli', cabbage: 'food/broccoli', kale: 'food/broccoli',
+  salad: 'food/broccoli', 'green bean': 'food/broccoli', courgette: 'food/pear', avocado: 'food/pear',
+  'apple juice': 'food/juice-carton', 'chicken breast': 'food/drumstick', salmon: 'food/steak',
   pumpkin: 'food/pumpkin', squash_veg: 'food/pumpkin', watermelon: 'food/watermelon',
   melon: 'food/watermelon',
   // meat
@@ -70,11 +73,17 @@ const NOISE = new Set([
   'little', 'red', 'green', 'white', 'brown', 'plain', 'light', 'low', 'fat',
   // counts belong in `count`, not in the name
   'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine',
-  'ten', 'dozen', 'couple', 'few', 'loaf', 'loaves', 'bunch', 'head',
+  'ten', 'eleven', 'twelve', 'dozen', 'couple', 'pair', 'few', 'loaf', 'loaves',
+  'bunch', 'head', 'tub', 'pot', 'tray', 'slice', 'punnet',
+  // sizes and how-full words belong in measure and amount
+  'x', 'l', 'litre', 'liter', 'ml', 'kg', 'g', 'gram', 'lb', 'pound', 'oz', 'pint',
+  'nearly', 'almost', 'out', 'last', 'gone', 'bit', 'empty', 'new', 'unopened', 'full',
 ])
 
 const singular = (w: string): string =>
   w.endsWith('ies') && w.length > 4 ? `${w.slice(0, -3)}y`
+  : /(tomato|potato|mango)es$/.test(w) ? w.slice(0, -2)
+  : /(leaves)$/.test(w) ? `${w.slice(0, -3)}f`
   : w.endsWith('es') && /(ch|sh|ss|x|z)es$/.test(w) ? w.slice(0, -2)
   : w.endsWith('s') && !w.endsWith('ss') ? w.slice(0, -1)
   : w

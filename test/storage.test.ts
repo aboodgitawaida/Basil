@@ -77,3 +77,19 @@ describe('LocalRepository', () => {
     await expect(repo.save(state())).resolves.toBeUndefined()
   })
 })
+
+describe('migrating an old save', () => {
+  it('cleans quantities out of labels and drops the old light override', async () => {
+    store.setItem(KEY, JSON.stringify({
+      version: 1,
+      items: [item({ name: 'egg', displayName: 'two eggs', count: 2 }), item({ name: 'milk', displayName: 'Oat Milk' })],
+      history: [],
+      quickAdd: {},
+      settings: { dietary: [], sound: true, lightOverride: 1 },
+    }))
+    const s = await new LocalRepository().load()
+    expect(s.items.map(i => i.displayName)).toEqual(['Eggs', 'Oat Milk'])
+    expect(s.settings).toMatchObject({ sound: true, lamp: null, music: false, weather: true })
+    expect('lightOverride' in s.settings).toBe(false)
+  })
+})

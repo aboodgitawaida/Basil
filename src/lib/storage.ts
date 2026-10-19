@@ -1,4 +1,4 @@
-import { EMPTY_STATE, SCHEMA_VERSION, type AppState } from './schema'
+import { EMPTY_STATE, SCHEMA_VERSION, prettyName, type AppState } from './schema'
 
 /** The whole persistence surface. Swapping localStorage for an API later means
  *  writing one more implementation of this and changing `repository` below —
@@ -12,7 +12,26 @@ const KEY = 'basil.state.v1'
 
 /** Migrations run oldest-first. Each takes the previous shape and returns the
  *  next one; unknown future versions are discarded rather than guessed at. */
-const MIGRATIONS: Array<(s: any) => any> = []
+const MIGRATIONS: Array<(s: any) => any> = [
+  // 0 -> 1: nothing changed shape
+  s => s,
+  // 1 -> 2: labels lose their quantities ("two eggs" -> "Eggs"), and the
+  // light switch stops pretending to be the time of day
+  s => {
+    const { lightOverride: _gone, ...settings } = s.settings ?? {}
+    return {
+      ...s,
+      settings: { ...settings, lamp: null },
+      items: Array.isArray(s.items)
+        ? s.items.map((i: any) => (typeof i?.displayName === 'string' && typeof i?.name === 'string' && QUANTITY.test(i.displayName)
+          ? { ...i, displayName: prettyName(i.name, i.count, i.unit) }
+          : i))
+        : [],
+    }
+  },
+]
+
+const QUANTITY = /\d|\b(a|an|one|two|three|four|five|six|seven|eight|nine|ten|dozen|half|bags?|bottles?|blocks?|of)\b/i
 
 function migrate(raw: any): AppState {
   if (!raw || typeof raw !== 'object') return structuredClone(EMPTY_STATE)

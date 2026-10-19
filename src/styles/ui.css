@@ -1,0 +1,429 @@
+/* The game's menus: a wooden frame round warm parchment, like a farm-sim
+   journal. Every size is a multiple of 3px so edges land on whole pixels. */
+:root {
+  --sv-outline: #3b1d0e;
+  --sv-wood-deep: #6b3014;
+  --sv-wood-dark: #8f431b;
+  --sv-wood: #c56b2e;
+  --sv-wood-light: #e8964a;
+  --sv-paper: #fbe2b0;
+  --sv-paper-dark: #f0c98a;
+  --sv-paper-deep: #dfae6c;
+  --sv-ink: #4a2511;
+  --sv-ink-dim: #8a5a35;
+  --sv-green: #4f8a2a;
+  --sv-green-light: #79b83e;
+  --sv-red: #b83a2a;
+  --sv-gold: #f2c14e;
+  --sv-sky: #7fb6e3;
+}
+
+/* ---- frames ---- */
+.sv-frame {
+  position: relative;
+  background: var(--sv-paper);
+  color: var(--sv-ink);
+  border: 6px solid var(--sv-wood);
+  box-shadow:
+    0 0 0 3px var(--sv-outline),
+    inset 0 0 0 3px var(--sv-wood-dark),
+    inset 0 0 0 6px var(--sv-paper-dark),
+    9px 9px 0 3px rgb(0 0 0 / 0.35);
+}
+/* little rivets in the corners */
+.sv-frame::before, .sv-frame::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  width: 6px;
+  height: 6px;
+  background: var(--sv-wood-light);
+  box-shadow: 0 0 0 1px var(--sv-wood-deep);
+}
+.sv-frame::before { left: -3px; }
+.sv-frame::after { right: -3px; }
+
+.sv-wood {
+  background: var(--sv-wood);
+  color: var(--sv-paper);
+  border: 3px solid var(--sv-outline);
+  box-shadow: inset 3px 3px 0 var(--sv-wood-light), inset -3px -3px 0 var(--sv-wood-dark);
+  text-shadow: 2px 2px 0 var(--sv-wood-deep);
+}
+
+/* ---- buttons ---- */
+.sv-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 48px;
+  padding: 9px 18px;
+  font: 24px/1 'TinyRPG', monospace;
+  color: var(--sv-paper);
+  background: var(--sv-wood);
+  border: 3px solid var(--sv-outline);
+  box-shadow: inset 3px 3px 0 var(--sv-wood-light), inset -3px -3px 0 var(--sv-wood-dark), 3px 3px 0 rgb(0 0 0 / 0.3);
+  text-shadow: 2px 2px 0 var(--sv-wood-deep);
+  white-space: nowrap;
+  user-select: none;
+}
+.sv-btn:hover:not(:disabled) { background: #d47a36; transform: translateY(-1px); }
+.sv-btn:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: inset -3px -3px 0 var(--sv-wood-light), inset 3px 3px 0 var(--sv-wood-dark);
+}
+.sv-btn:disabled { filter: grayscale(0.7) brightness(0.8); cursor: default; }
+.sv-btn:focus-visible { outline: 3px solid var(--sv-gold); outline-offset: 3px; }
+.sv-btn--go { background: var(--sv-green); box-shadow: inset 3px 3px 0 var(--sv-green-light), inset -3px -3px 0 #335c1a, 3px 3px 0 rgb(0 0 0 / 0.3); text-shadow: 2px 2px 0 #24420f; }
+.sv-btn--go:hover:not(:disabled) { background: #5b9a31; }
+.sv-btn--quiet {
+  color: var(--sv-ink);
+  background: var(--sv-paper-dark);
+  box-shadow: inset 3px 3px 0 #fff0cc, inset -3px -3px 0 var(--sv-paper-deep), 3px 3px 0 rgb(0 0 0 / 0.15);
+  text-shadow: none;
+}
+.sv-btn--quiet:hover:not(:disabled) { background: #f6d49b; }
+.sv-btn--danger { background: var(--sv-red); box-shadow: inset 3px 3px 0 #dd6250, inset -3px -3px 0 #7d2418, 3px 3px 0 rgb(0 0 0 / 0.3); text-shadow: 2px 2px 0 #5c160c; }
+.sv-btn--small { min-height: 36px; padding: 6px 12px; }
+.sv-btn--big { min-height: 66px; min-width: 264px; font-size: 36px; padding: 12px 30px; }
+
+/* the red close square in the corner of every menu */
+.sv-close {
+  position: absolute;
+  top: -21px;
+  right: -21px;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  font: 24px/1 'TinyRPG', monospace;
+  color: #fff3e0;
+  background: var(--sv-red);
+  border: 3px solid var(--sv-outline);
+  box-shadow: inset 3px 3px 0 #dd6250, inset -3px -3px 0 #7d2418;
+  z-index: 2;
+}
+.sv-close:hover { background: #cc4634; }
+
+/* ---- tick boxes ---- */
+.sv-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 9px 6px 6px;
+  color: var(--sv-ink);
+  background: transparent;
+  border: 3px solid transparent;
+  user-select: none;
+}
+.sv-check:hover { background: rgb(255 255 255 / 0.25); }
+.sv-check__box {
+  position: relative;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  background: #fff4d8;
+  border: 3px solid var(--sv-outline);
+  box-shadow: inset 3px 3px 0 var(--sv-paper-deep);
+}
+.sv-check__box svg { position: absolute; inset: -3px; width: 30px; height: 30px; }
+.sv-check--on .sv-check__box { background: #e9f5c9; }
+.sv-check__hint { color: var(--sv-ink-dim); }
+
+/* ---- text ---- */
+.sv-h1 { font: 48px/1 'TinyRPG', monospace; }
+.sv-h2 { font: 36px/1 'TinyRPG', monospace; }
+.sv-dim { color: var(--sv-ink-dim); }
+.sv-small { font-size: 12px; }
+.sv-rule { height: 3px; background: var(--sv-paper-deep); box-shadow: 0 3px 0 #fff0cc; margin: 15px 0; border: 0; }
+
+/* ---- full-screen menus ---- */
+.sv-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 36px 24px;
+  background: rgb(20 12 18 / 0.55);
+  animation: fadein 120ms steps(3);
+}
+@keyframes fadein { from { opacity: 0; } }
+.sv-modal__panel {
+  min-width: 0;
+  width: min(100%, 780px);
+  max-height: calc(100vh - 72px);
+  display: flex;
+  flex-direction: column;
+  animation: popin 160ms steps(4);
+}
+.sv-modal__panel--narrow { width: min(100%, 540px); }
+.sv-modal__panel--wide { width: min(100%, 1020px); }
+@keyframes popin { from { transform: translateY(18px); opacity: 0; } }
+.sv-modal__title {
+  align-self: center;
+  margin: -33px 0 6px;
+  padding: 9px 30px;
+  font: 36px/1 'TinyRPG', monospace;
+  z-index: 1;
+}
+.sv-modal__body { padding: 18px 27px 24px; overflow: auto; min-height: 0; }
+.sv-modal__body::-webkit-scrollbar { width: 15px; }
+.sv-modal__body::-webkit-scrollbar-track { background: var(--sv-paper-dark); }
+.sv-modal__body::-webkit-scrollbar-thumb { background: var(--sv-wood); border: 3px solid var(--sv-outline); }
+.sv-modal__foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 15px 27px 21px;
+  border-top: 3px solid var(--sv-paper-deep);
+}
+.sv-modal__foot--between { justify-content: space-between; }
+
+/* ---- sprites in menus: always a whole-number zoom ---- */
+.zoom { display: block; flex: 0 0 auto; }
+.zoom img { display: block; image-rendering: pixelated; transform-origin: top left; }
+
+/* ================= title screen ================= */
+.title {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+.title__land { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+.title__cloud { position: absolute; image-rendering: pixelated; animation: titlecloud linear infinite; }
+@keyframes titlecloud { from { transform: translateX(-30vw); } to { transform: translateX(130vw); } }
+.title__inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  padding: 24px;
+}
+.title__sign {
+  position: relative;
+  padding: 30px 60px 24px;
+  text-align: center;
+}
+.title__logo {
+  font: 120px/1 'TinyRPG', monospace;
+  color: #fff1cf;
+  letter-spacing: 6px;
+  text-shadow:
+    6px 0 0 var(--sv-outline), -6px 0 0 var(--sv-outline), 0 6px 0 var(--sv-outline), 0 -6px 0 var(--sv-outline),
+    6px 6px 0 var(--sv-outline), -6px 6px 0 var(--sv-outline), 6px -6px 0 var(--sv-outline), -6px -6px 0 var(--sv-outline),
+    0 12px 0 var(--sv-wood-deep);
+}
+.title__logo span { color: #a9d36a; }
+.title__tag { display: inline-block; margin-top: 21px; padding: 9px 18px; }
+.title__cat { position: absolute; left: 50%; top: -84px; margin-left: -72px; }
+.title__menu { display: flex; flex-direction: column; gap: 15px; margin-top: 24px; }
+.title__foot { position: absolute; left: 0; right: 0; bottom: 15px; text-align: center; color: #fff1cf; text-shadow: 2px 2px 0 rgb(0 0 0 / 0.5); }
+
+/* ================= in-game HUD ================= */
+.hud { position: fixed; inset: 0; pointer-events: none; z-index: 10; }
+.hud > * { pointer-events: auto; }
+
+.hud__menu { position: absolute; left: 15px; top: 15px; display: flex; gap: 12px; flex-wrap: wrap; max-width: calc(100vw - 260px); }
+
+/* the date-and-time box, top right */
+.hud__clock {
+  position: absolute;
+  right: 18px;
+  top: 18px;
+  width: 216px;
+  padding: 9px 12px 12px;
+  text-align: center;
+}
+.hud__clock-day { display: flex; justify-content: space-between; align-items: center; padding: 3px 6px 9px; border-bottom: 3px solid var(--sv-paper-deep); }
+.hud__clock-time { padding-top: 9px; font: 36px/1 'TinyRPG', monospace; }
+.hud__clock-phase { margin-top: 6px; color: var(--sv-ink-dim); }
+.hud__dial { position: relative; width: 48px; height: 27px; overflow: hidden; }
+.hud__dial-sky { position: absolute; inset: 0; border: 3px solid var(--sv-outline); border-bottom: 0; border-radius: 27px 27px 0 0; }
+.hud__dial-body { position: absolute; width: 9px; height: 9px; border: 2px solid var(--sv-outline); }
+
+/* the add bar, bottom centre, like a toolbar */
+.hud__bar {
+  position: absolute;
+  left: 50%;
+  bottom: 15px;
+  transform: translateX(-50%);
+  width: min(calc(100vw - 30px), 1080px);
+  padding: 12px;
+}
+.hud__bar-row { display: flex; gap: 12px; }
+.hud__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 9px 15px;
+  font: 24px/1 'TinyRPG', monospace;
+  color: var(--sv-ink);
+  background: #fff4d8;
+  border: 3px solid var(--sv-outline);
+  box-shadow: inset 3px 3px 0 var(--sv-paper-deep);
+  outline: none;
+}
+.hud__input::placeholder { color: #b98d5f; }
+.hud__input:focus { box-shadow: inset 3px 3px 0 var(--sv-paper-deep), 0 0 0 3px var(--sv-gold); }
+.hud__quick { display: flex; gap: 6px; align-items: center; flex: 0 1 auto; min-width: 0; overflow: hidden; }
+.hud__quick .sv-btn { min-height: 48px; }
+.hud__hint { margin-top: 9px; color: var(--sv-ink-dim); }
+
+/* first-run tips */
+.hud__tip {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 9px 15px;
+  white-space: nowrap;
+  animation: bob 1600ms steps(2) infinite;
+}
+@keyframes bob { 50% { transform: translate(-50%, -3px); } }
+
+/* the undo note */
+.toast {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 12;
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  padding: 9px 9px 9px 18px;
+  white-space: nowrap;
+  animation: popin 160ms steps(4);
+}
+
+/* item being dragged between fridge and cupboard */
+.drag-ghost {
+  position: fixed;
+  z-index: 40;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(3px 3px 0 rgb(10 8 14 / 0.5));
+}
+.drag-ghost img { width: 100%; height: 100%; image-rendering: pixelated; }
+.shelf-item--lifted { opacity: 0.25; }
+
+/* ================= lists inside menus ================= */
+.sv-list { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.sv-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 9px 12px;
+  background: #fff0cc;
+  border: 3px solid var(--sv-paper-deep);
+  text-align: left;
+  width: 100%;
+  color: var(--sv-ink);
+}
+button.sv-row:hover { background: #fff8e2; border-color: var(--sv-wood); }
+.sv-row__icon { display: grid; place-items: center; width: 60px; height: 60px; flex: 0 0 auto;
+  background: var(--sv-paper-dark); border: 3px solid var(--sv-paper-deep); }
+.sv-row__text { display: flex; flex-direction: column; gap: 6px; flex: 1 1 auto; min-width: 0; }
+.sv-row__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sv-row__side { display: flex; align-items: center; gap: 9px; flex: 0 0 auto; }
+
+.sv-tag {
+  display: inline-block;
+  padding: 3px 6px;
+  font-size: 12px;
+  color: var(--sv-paper);
+  background: var(--sv-wood-dark);
+  border: 2px solid var(--sv-outline);
+}
+.sv-tag--green { background: var(--sv-green); }
+.sv-tag--gold { background: #b0801c; }
+.sv-tag--red { background: var(--sv-red); }
+
+.sv-stepper { display: inline-flex; align-items: center; gap: 0; }
+.sv-stepper > button { width: 42px; min-height: 42px; padding: 0; }
+.sv-stepper__n { min-width: 72px; text-align: center; padding: 0 6px; }
+
+.sv-section { margin: 21px 0 12px; display: flex; align-items: baseline; gap: 12px; }
+.sv-section:first-child { margin-top: 0; }
+
+.sv-grid { display: flex; flex-wrap: wrap; gap: 9px; }
+.sv-field { display: flex; flex-direction: column; gap: 9px; margin-bottom: 18px; }
+
+/* ================= the cookbook ================= */
+.cook__head { display: flex; gap: 18px; align-items: center; margin-bottom: 15px; }
+.cook__basil { width: 96px; height: 72px; flex: 0 0 auto; background: var(--sv-paper-dark); border: 3px solid var(--sv-paper-deep); display: grid; place-items: center; }
+.cook__say { position: relative; flex: 1 1 auto; padding: 12px 15px; background: #fff4d8; border: 3px solid var(--sv-outline); }
+.cook__say::before { content: ''; position: absolute; left: -12px; top: 18px; width: 12px; height: 12px; background: #fff4d8; border-left: 3px solid var(--sv-outline); border-bottom: 3px solid var(--sv-outline); transform: rotate(45deg); margin-left: 3px; }
+.cook__filters { display: flex; flex-wrap: wrap; gap: 3px 6px; padding: 9px; background: var(--sv-paper-dark); border: 3px solid var(--sv-paper-deep); }
+.cook__cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(276px, 1fr)); gap: 12px; }
+.cook__card {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  text-align: left;
+  color: var(--sv-ink);
+  background: #fff0cc;
+  border: 3px solid var(--sv-paper-deep);
+  box-shadow: 3px 3px 0 rgb(0 0 0 / 0.08);
+}
+.cook__card:hover { background: #fff8e2; border-color: var(--sv-wood); transform: translateY(-2px); }
+.cook__card--short { background: #f3dcae; }
+.cook__card-name { line-height: 1.1; }
+.cook__card-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.cook__card-need { margin-top: 9px; color: var(--sv-red); font-size: 12px; line-height: 1.3; }
+.cook__dish { width: 72px; height: 72px; display: grid; place-items: center; background: var(--sv-paper-dark); border: 3px solid var(--sv-paper-deep); }
+
+.recipe { display: grid; grid-template-columns: 1fr 1.4fr; gap: 27px; }
+.recipe__hero { display: flex; gap: 18px; align-items: center; margin-bottom: 18px; }
+.recipe__stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; margin-bottom: 21px; }
+.recipe__stat { padding: 9px 6px; text-align: center; background: #fff0cc; border: 3px solid var(--sv-paper-deep); }
+.recipe__stat b { display: block; font-weight: normal; font-size: 36px; line-height: 1; margin-bottom: 6px; }
+.recipe__ings { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.recipe__ing { display: flex; gap: 9px; align-items: flex-start; line-height: 1.15; }
+.recipe__mark { flex: 0 0 auto; width: 21px; height: 21px; margin-top: 1px; border: 3px solid var(--sv-outline); background: #fff4d8; }
+.recipe__mark--have { background: var(--sv-green-light); }
+.recipe__mark--miss { background: var(--sv-red); }
+.recipe__mark--opt { background: var(--sv-paper-deep); }
+.recipe__steps { list-style: none; counter-reset: step; display: flex; flex-direction: column; gap: 12px; }
+.recipe__steps li { counter-increment: step; display: grid; grid-template-columns: 36px 1fr; gap: 9px; line-height: 1.2; }
+.recipe__steps li::before {
+  content: counter(step);
+  display: grid;
+  place-items: center;
+  width: 33px;
+  height: 33px;
+  color: var(--sv-paper);
+  background: var(--sv-wood);
+  border: 3px solid var(--sv-outline);
+}
+
+@media (max-width: 1100px) {
+  .hud__quick .sv-btn:nth-child(n+3) { display: none; }
+}
+
+@media (max-width: 760px) {
+  .recipe { grid-template-columns: 1fr; }
+  .recipe__stats { grid-template-columns: repeat(2, 1fr); }
+  .hud__clock { width: 168px; right: 9px; top: 9px; }
+  .hud__clock-time { font-size: 24px; }
+  .hud__menu { max-width: calc(100vw - 190px); left: 9px; top: 9px; }
+  .hud__menu .sv-btn { padding: 6px 9px; min-height: 42px; }
+  .title__logo { font-size: 72px; }
+  .sv-modal { padding: 30px 24px; }
+  .title__cloud { max-width: 30vw; }
+  .sv-row { flex-wrap: wrap; }
+  .sv-row__side { width: 100%; justify-content: flex-end; flex-wrap: wrap; }
+  .sv-modal__title { font-size: 24px; padding: 9px 18px; margin-top: -27px; }
+  .cook__cards { grid-template-columns: 1fr; }
+  .hud__quick { display: none; }
+  .hud__bar { padding: 9px; }
+  .toast { top: auto; bottom: 108px; }
+  .sv-modal__body { padding: 15px 15px 18px; }
+}
