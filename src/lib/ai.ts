@@ -50,8 +50,10 @@ export function developerHint(reason?: string, detail?: string): string {
   return `Model call failed: ${d || reason || 'unknown'}`
 }
 
+/** Only while developing: in production the fallback is the whole story, and
+ *  a visitor opening the console shouldn't find warnings about it. */
 const warn = (reason?: string, detail?: string) => {
-  if (typeof console !== 'undefined') console.warn(`[basil] ${developerHint(reason, detail)}`)
+  if (import.meta.env?.DEV) console.warn(`[basil] ${developerHint(reason, detail)}`)
 }
 
 /** Reading shopping never waits longer than this; the built-in reader takes over. */
