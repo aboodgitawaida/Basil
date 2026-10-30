@@ -7,6 +7,9 @@ export type ItemHandlers = {
   onPointerDown: (item: Item, e: React.PointerEvent) => void
   onPointerMove: (e: React.PointerEvent) => void
   onPointerUp: (e: React.PointerEvent) => void
+  onPointerCancel: (e: React.PointerEvent) => void
+  /** Enter or Space on a focused item: the keyboard's tap */
+  onActivate: (item: Item) => void
 }
 
 const label = (i: Item) => [i.displayName, quantityText(i)].filter(Boolean).join(' ')
@@ -22,7 +25,7 @@ type Props = ItemHandlers & {
 /** Things standing on shelves, as laid out by arrange(). Clipped to the part
  *  of the compartment the door has actually uncovered, so nothing floats over
  *  a half-open door. */
-export function Stock({ placed, draggingId, from = 0, to = KIT_W, onPointerDown, onPointerMove, onPointerUp }: Props) {
+export function Stock({ placed, draggingId, from = 0, to = KIT_W, onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onActivate }: Props) {
   if (!placed.length || to <= from) return null
   return (
     <div className="stock" style={{ clipPath: `inset(-40px ${KIT_W - to}px -40px ${from}px)` }}>
@@ -38,6 +41,10 @@ export function Stock({ placed, draggingId, from = 0, to = KIT_W, onPointerDown,
           onPointerDown={e => onPointerDown(item, e)}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
+          onPointerCancel={onPointerCancel}
+          // a pointer tap is handled on pointer-up; a click with no pointer
+          // behind it (detail 0) came from the keyboard
+          onClick={e => { if (e.detail === 0) onActivate(item) }}
           title={label(item)}
           aria-label={label(item)}
         >

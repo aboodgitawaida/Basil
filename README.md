@@ -48,7 +48,8 @@ can cook with it.
 - **React 18 + TypeScript (strict) + Vite.** No game engine: the room is DOM
   elements placed in "art pixels" (1 px = 1 cm) and scaled by one whole
   number, so pixel art never blurs. Phones and portrait tablets get the
-  kitchen half of the room at a larger scale.
+  kitchen half of the room at a larger scale, and everything works from the
+  keyboard as well as with a mouse or a finger.
 - **AI behind a serverless function.** `/api/parse` and `/api/suggest` run in
   one Vercel function (`api/[...path].ts`); locally the same handlers run
   inside Vite or Express. Supports Gemini or Groq with JSON-schema output, and
