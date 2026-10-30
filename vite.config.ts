@@ -13,6 +13,13 @@ const api = () => ({
       next()
     })
   },
+  // `vite preview` serves the built app; give it the same API
+  configurePreviewServer(server: any) {
+    server.middlewares.use(async (req: any, res: any, next: any) => {
+      if (await handleApi(req, res)) return
+      next()
+    })
+  },
 })
 
 export default defineConfig({

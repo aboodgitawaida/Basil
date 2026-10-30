@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { failureMessage, fromModel, inventoryKey, parseText, suggestMeals } from '../src/lib/ai'
+import { developerHint, failureMessage, fromModel, inventoryKey, parseText, suggestMeals } from '../src/lib/ai'
 import { item } from './helpers'
 
 afterEach(() => vi.unstubAllGlobals())
@@ -8,16 +8,27 @@ const reply = (body: unknown, status = 200) => vi.fn(async () => new Response(JS
 
 describe('failureMessage', () => {
   it.each([
-    ['no-key', '', /No API key/],
+    ['no-key', '', /built-in cookbook/],
     ['rate-limited', '', /a lot just now/],
-    ['bad-json', '', /unreadable/],
-    ['unreachable', 'groq 404: model not found', /not found/],
-    ['unreachable', 'gemini 403: denied', /rejected/],
-    ['unreachable', 'groq 429: slow down', /Rate limited by the model/],
-    ['unreachable', 'groq 503', /having trouble/],
+    ['bad-json', '', /built-in cookbook/],
+    ['unreachable', 'groq 429: slow down', /a lot just now/],
     ['unreachable', 'AbortError: aborted', /too long/],
-    ['unreachable', '', /Could not reach/],
+    ['unreachable', '', /offline/],
   ])('%s %s', (reason, detail, re) => expect(failureMessage(reason, detail)).toMatch(re))
+
+  it('never tells a visitor about keys or config', () => {
+    for (const r of ['no-key', 'unreachable', 'bad-json', 'rate-limited']) {
+      expect(failureMessage(r, 'gemini 404: x')).not.toMatch(/KEY|BASIL_|\.env|API/)
+    }
+  })
+})
+
+describe('developerHint', () => {
+  it.each([
+    ['no-key', '', /GEMINI_API_KEY/],
+    ['unreachable', 'groq 404: model not found', /BASIL_MODEL/],
+    ['unreachable', 'gemini 403: denied', /rejected the API key/],
+  ])('%s %s', (reason, detail, re) => expect(developerHint(reason, detail)).toMatch(re))
 })
 
 describe('parseText', () => {
@@ -62,7 +73,7 @@ it('suggestMeals comes back empty with a reason when there is no model', async (
   vi.stubGlobal('fetch', reply({ ok: false, reason: 'no-key' }))
   const out = await suggestMeals([item({ name: 'egg' })], [])
   expect(out).toMatchObject({ recipes: [], source: 'local' })
-  expect(out.why).toMatch(/No API key/)
+  expect(out.why).toMatch(/built-in cookbook/)
 })
 
 it('suggestMeals turns model meals into recipes', async () => {

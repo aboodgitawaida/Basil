@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { book, cook, dishSprite } from '../src/lib/craft'
+import { book, cook, dishSprite } from '../src/lib/cooking'
 import { RECIPES, match } from '../src/lib/recipes'
 import { item, state } from './helpers'
 

@@ -1,6 +1,6 @@
 import { daysLeft, isGoingOff, quantityText, type Item, type Location } from '../lib/schema'
 import { Modal, Zoom } from './kit'
-import { describe } from './ParsePreview'
+import { describe } from '../lib/describe'
 
 const ORDER: Array<[Location, string]> = [['fridge', 'Fridge'], ['freezer', 'Freezer'], ['cupboard', 'Cupboard']]
 

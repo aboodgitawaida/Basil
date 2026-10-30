@@ -1,6 +1,6 @@
 import { daysLeft, quantityText, type Item, type Location } from '../lib/schema'
 import { Modal, Zoom } from './kit'
-import { describe } from './ParsePreview'
+import { describe } from '../lib/describe'
 
 const PLACES: Location[] = ['fridge', 'freezer', 'cupboard']
 const AMOUNTS: Array<Item['amount']> = ['full', 'half', 'low']
