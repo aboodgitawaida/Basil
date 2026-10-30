@@ -1,6 +1,6 @@
 import index from '../assets/sprites/index.json'
 
-const urls = import.meta.glob('../assets/sprites/**/*.png', { eager: true, as: 'url' }) as Record<string, string>
+const urls = import.meta.glob('../assets/sprites/**/*.png', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
 
 const byKey: Record<string, string> = {}
 for (const [path, url] of Object.entries(urls)) {
