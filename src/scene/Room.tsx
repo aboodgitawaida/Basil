@@ -10,6 +10,7 @@ import { Window } from './Window'
 import { WallClock } from './Clock'
 import { arrange } from '../lib/arrange'
 import { useSteps } from '../lib/useSteps'
+import type { ItemHandlers } from './Shelves'
 import type { Item } from '../lib/schema'
 import type { Sky } from '../lib/weather'
 import { Basil } from './Basil'
@@ -28,11 +29,7 @@ type Props = {
   /** "+N more": open the kitchen list */
   onMore: () => void
   items: Item[]
-  itemHandlers: {
-    onPointerDown: (item: Item, e: React.PointerEvent) => void
-    onPointerMove: (e: React.PointerEvent) => void
-    onPointerUp: (e: React.PointerEvent) => void
-  }
+  itemHandlers: ItemHandlers
   draggingId?: string
   /** the real time, which is what the window shows */
   now: Date
