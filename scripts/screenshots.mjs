@@ -27,6 +27,10 @@ try {
     if (await page.locator('.basilsay').count()) await page.locator('.basilsay').click()
     await page.waitForTimeout(6500)
     await page.screenshot({ path: `${OUT}/kitchen.png` })
+    // the link preview: the same room with the menus hidden; gif.py adds the title
+    await page.addStyleTag({ content: '.hud, .toast { visibility: hidden !important; }' })
+    await page.screenshot({ path: `${FRAMES}/og-kitchen.png` })
+    await page.addStyleTag({ content: '.hud, .toast { visibility: visible !important; }' })
     await page.getByRole('button', { name: 'Ask Basil what you can cook' }).click()
     await page.waitForTimeout(500)
     await page.screenshot({ path: `${OUT}/cookbook.png` })
@@ -75,3 +79,5 @@ try {
   await browser.close()
   server.kill()
 }
+// the preview server's own child process would otherwise keep node alive
+process.exit(0)
