@@ -96,7 +96,8 @@ export const EMPTY_STATE: AppState = {
   items: [],
   history: [],
   shopping: [],
-  settings: { dietary: [], sound: false, music: false, lamp: null, weather: true },
+  // weather is opt-in: asking for a location on first load is a rude welcome
+  settings: { dietary: [], sound: false, music: false, lamp: null, weather: false },
   quickAdd: {},
 }
 

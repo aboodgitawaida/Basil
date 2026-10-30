@@ -21,26 +21,41 @@ export function aiStatus(): Promise<AiStatus> {
   return statusCache
 }
 
+/** What a visitor is told when the model can't help. Plain, and never about
+ *  configuration: the fallback always works, so this is a note, not an error. */
 const REASONS: Record<string, string> = {
-  'no-key': 'No API key, so the simple parser had a go.',
-  unreachable: 'Could not reach the model, so the simple parser had a go.',
-  'bad-json': 'The model sent something unreadable, so the simple parser had a go.',
+  'no-key': 'Basil read it himself this time.',
+  unreachable: "Basil couldn't reach his notes, so he read it himself.",
+  'bad-json': 'Basil read it himself this time.',
 }
 
-/** Turns a failed AI result into a sentence that says what to fix. The server
- *  puts the provider's HTTP status in `detail`, e.g. "gemini 404: ...". */
+/** A short, friendly line for the screen. */
 export function failureMessage(reason?: string, detail?: string): string {
-  if (reason === 'no-key') return 'No API key set. Add GEMINI_API_KEY or GROQ_API_KEY (in .env, or the host\'s environment variables) and restart.'
-  if (reason === 'rate-limited') return 'Basil has asked the model a lot just now. Try again in a minute.'
-  if (reason === 'bad-json') return 'The model sent something unreadable.'
+  if (reason === 'rate-limited') return 'Basil has been asked a lot just now. Try again in a minute.'
+  if (reason === 'no-key' || reason === 'bad-json') return 'Using the built-in cookbook for now.'
   const d = detail ?? ''
-  if (/\b404\b/.test(d)) return 'The model name was not found. It may have been retired: set BASIL_MODEL.'
-  if (/\b(401|403)\b/.test(d) || /API key/i.test(d)) return 'The API key was rejected. Check the key for your provider.'
-  if (/\b429\b/.test(d)) return 'Rate limited by the model. Wait a minute and try again.'
-  if (/\b5\d\d\b/.test(d)) return 'The model service is having trouble. Try again shortly.'
-  if (/abort/i.test(d)) return 'The model took too long to answer.'
-  return 'Could not reach the model.'
+  if (/\b429\b/.test(d)) return 'Basil has been asked a lot just now. Try again in a minute.'
+  if (/abort|timeout/i.test(d)) return 'Basil took too long to think. Built-in ideas for now.'
+  return 'Basil is offline for a moment. Built-in ideas for now.'
 }
+
+/** What a developer needs to fix it. Logged to the console, never shown. */
+export function developerHint(reason?: string, detail?: string): string {
+  if (reason === 'no-key') return 'No model key: set GEMINI_API_KEY or GROQ_API_KEY in .env (or the host\'s environment) and restart.'
+  if (reason === 'rate-limited') return `Rate limited by Basil's own API cap: ${detail ?? ''}`
+  if (reason === 'bad-json') return `The model replied with something that failed validation: ${detail ?? ''}`
+  const d = detail ?? ''
+  if (/\b404\b/.test(d)) return `Model not found (retired?): set BASIL_MODEL. ${d}`
+  if (/\b(401|403)\b/.test(d) || /API key/i.test(d)) return `The provider rejected the API key. ${d}`
+  return `Model call failed: ${d || reason || 'unknown'}`
+}
+
+const warn = (reason?: string, detail?: string) => {
+  if (typeof console !== 'undefined') console.warn(`[basil] ${developerHint(reason, detail)}`)
+}
+
+/** Reading shopping never waits longer than this; the built-in reader takes over. */
+export const PARSE_TIMEOUT_MS = 8_000
 
 /**
  * Asks the model, and falls back to the keyword matcher on absolutely anything
@@ -50,14 +65,20 @@ export function failureMessage(reason?: string, detail?: string): string {
 export async function parseText(text: string): Promise<ParseOutcome> {
   const fallback = (why: string): ParseOutcome => ({ drafts: keywordParse(text), source: 'keywords', why })
   let res: Response
+  const ctl = new AbortController()
+  const timer = setTimeout(() => ctl.abort(), PARSE_TIMEOUT_MS)
   try {
     res = await fetch('/api/parse', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ text }),
+      signal: ctl.signal,
     })
-  } catch {
+  } catch (err) {
+    warn('unreachable', String(err))
     return fallback(REASONS.unreachable)
+  } finally {
+    clearTimeout(timer)
   }
 
   // error replies carry a reason too (a 429 says it was rate-limited), so read
@@ -68,7 +89,10 @@ export async function parseText(text: string): Promise<ParseOutcome> {
   } catch {
     return fallback(res.ok ? REASONS['bad-json'] : REASONS.unreachable)
   }
-  if (!body?.ok) return fallback(`${failureMessage(body?.reason, body?.detail)} Using the simple parser.`)
+  if (!body?.ok) {
+    warn(body?.reason, body?.detail)
+    return fallback(body?.reason === 'rate-limited' ? failureMessage('rate-limited') : REASONS[body?.reason] ?? REASONS.unreachable)
+  }
 
   const drafts: Draft[] = body.data.items.map((i: any) => ({
     displayName: i.displayName || prettyName(i.name, i.count, i.unit),
@@ -146,8 +170,9 @@ export async function suggestMeals(items: Item[], dietary: string[]): Promise<Su
       if (memo.size > 40) memo.delete(memo.keys().next().value as string)
       return out
     }
+    warn(body?.reason, body?.detail)
     why = failureMessage(body?.reason, body?.detail)
-  } catch { why = failureMessage('unreachable') }
+  } catch (err) { warn('unreachable', String(err)); why = failureMessage('unreachable') }
   // a fallback answer is not remembered: fix the key and the next ask should work
   return { recipes: [], source: 'local', why }
 }

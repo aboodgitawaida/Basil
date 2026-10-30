@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { RECIPES, cookable, match, passes, spending } from '../src/lib/recipes'
+import { RECIPES, cookable, fitsDiet, match, passes, spending } from '../src/lib/recipes'
 import { item } from './helpers'
 
 const r = (name: string) => RECIPES.find(x => x.name === name)!
@@ -73,5 +73,18 @@ describe('cookable and filters', () => {
   it('spending takes counts for counted things and one of everything else', () => {
     const m = match(r('Scrambled eggs on toast'), kitchen)
     expect(spending(m)).toEqual([{ id: kitchen[0].id, count: 3 }, { id: kitchen[1].id, count: 1 }])
+  })
+})
+
+describe('diet settings', () => {
+  const r = (name: string) => RECIPES.find(x => x.name === name)!
+  it('rule recipes out by what they need, not by optional extras', () => {
+    expect(fitsDiet(r('Cheese on toast'), ['gluten-free'])).toBe(false)
+    expect(fitsDiet(r('Cheese omelette'), ['gluten-free'])).toBe(true)
+    expect(fitsDiet(r('Cheese omelette'), ['dairy-free'])).toBe(false)
+    // butter is optional in scrambled eggs, but the bread is not
+    expect(fitsDiet(r('Bacon and eggs'), ['no pork'])).toBe(false)
+    expect(fitsDiet(r('Peanut butter toast'), ['no nuts'])).toBe(false)
+    expect(fitsDiet(r('Lentil dal'), ['vegan', 'gluten-free', 'dairy-free', 'no nuts'])).toBe(true)
   })
 })
