@@ -44,7 +44,7 @@ export function fridgeRemark(items: Item[], now = new Date()): Remark | null {
   const make = cookable(items, undefined, 0).find(m => m.uses.filter(u => u.item).length > 1)
   if (make) {
     const name = make.recipe.name
-    return { key: `make:${name}`, text: `You could make ${name.toLowerCase()}. It's all in there. Just saying.` }
+    return { key: `make:${name}`, text: `Everything for ${name.toLowerCase()} is in there. Just saying.` }
   }
   return null
 }

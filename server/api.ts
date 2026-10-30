@@ -15,6 +15,7 @@ function readBody(req: IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {
     let data = ''
     req.on('data', chunk => {
+      if (data.length > MAX_BODY) return   // already refused; drain the rest
       data += chunk
       if (data.length > MAX_BODY) reject(new Error('body too large'))
     })
@@ -23,9 +24,29 @@ function readBody(req: IncomingMessage): Promise<string> {
   })
 }
 
+/**
+ * Browsers say which site a request came from. Only Basil's own pages may
+ * spend the model key from a browser, so another website can't quietly use
+ * it through its visitors. Scripts outside a browser send no origin; the rate
+ * limit is what holds them back.
+ */
+export function fromThisSite(req: IncomingMessage): boolean {
+  if (req.headers['sec-fetch-site'] === 'cross-site') return false
+  const origin = req.headers.origin
+  if (!origin) return true
+  const hosts = [req.headers['x-forwarded-host'], req.headers.host].flat().filter(Boolean)
+  try {
+    return hosts.includes(new URL(origin).host)
+  } catch {
+    return false
+  }
+}
+
 const send = (res: ServerResponse, status: number, body: unknown) => {
   res.statusCode = status
   res.setHeader('content-type', 'application/json')
+  res.setHeader('cache-control', 'no-store')
+  res.setHeader('x-content-type-options', 'nosniff')
   res.end(JSON.stringify(body))
 }
 
@@ -61,14 +82,25 @@ export function createApiHandler(limiter: RateLimiter = new RateLimiter()) {
     }
 
     if (req.method !== 'POST') {
+      res.setHeader('allow', 'POST')
       send(res, 405, { error: 'POST only' })
+      return true
+    }
+
+    if (!fromThisSite(req)) {
+      send(res, 403, { ok: false, reason: 'forbidden', detail: 'requests from other sites are not accepted' })
       return true
     }
 
     let body: any
     try {
       body = JSON.parse((await readBody(req)) || '{}')
-    } catch {
+    } catch (err) {
+      const big = err instanceof Error && err.message === 'body too large'
+      send(res, big ? 413 : 400, { error: big ? 'body too large' : 'bad body' })
+      return true
+    }
+    if (!body || typeof body !== 'object') {
       send(res, 400, { error: 'bad body' })
       return true
     }
@@ -89,7 +121,9 @@ export function createApiHandler(limiter: RateLimiter = new RateLimiter()) {
         return true
       }
     } catch (err) {
-      send(res, 500, { ok: false, reason: 'unreachable', detail: String(err).slice(0, 200) })
+      // the details stay in the server log; the visitor only needs to know to fall back
+      console.error('[basil] api error', err)
+      send(res, 500, { ok: false, reason: 'unreachable', detail: 'server error' })
       return true
     }
 

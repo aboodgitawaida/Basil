@@ -60,6 +60,7 @@ describe('clientIp', () => {
     ({ headers, socket: { remoteAddress } }) as unknown as IncomingMessage
 
   it('takes the first forwarded address, then x-real-ip, then the socket', () => {
+    expect(clientIp(req({ 'x-vercel-forwarded-for': '9.9.9.9', 'x-forwarded-for': '1.2.3.4' }))).toBe('9.9.9.9')
     expect(clientIp(req({ 'x-forwarded-for': '1.2.3.4, 10.0.0.2' }))).toBe('1.2.3.4')
     expect(clientIp(req({ 'x-real-ip': '5.6.7.8' }))).toBe('5.6.7.8')
     expect(clientIp(req({}))).toBe('10.0.0.1')

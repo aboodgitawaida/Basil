@@ -30,9 +30,9 @@ export function Settings({ settings, onChange, onReset, aiNote, onClose }: Props
 
       <p className="sv-section sv-h2">Outside</p>
       <div className="sv-field">
-        <Check on={settings.weather} onChange={v => set({ weather: v })} label="Real weather in the window" hint="asks your browser for your location, once" />
-        <Check on={!!settings.south} onChange={v => set({ south: v })} label="Southern hemisphere" hint="summer in December" />
-        <p className="sv-small sv-dim">The sky follows your own clock and the seasons follow the date. The switch by the window only works the lamp.</p>
+        <Check on={settings.weather} onChange={v => set({ weather: v })} label="Real weather in the window" hint="asks your browser for your location, once" showHint />
+        <Check on={!!settings.south} onChange={v => set({ south: v })} label="Southern hemisphere" hint="summer in December" showHint />
+        <p className="sv-small sv-dim">The sky follows your own clock and the seasons follow the date. The light switch by the window turns the lamp on and off.</p>
       </div>
 
       <p className="sv-section sv-h2">What you eat</p>

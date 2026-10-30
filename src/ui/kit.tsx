@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, type ReactNode } from 'react'
 import { spriteSize, spriteUrl } from '../lib/sprites'
 
 /** A sprite at a whole-number zoom, so it stays crisp. */
@@ -20,27 +20,55 @@ type ModalProps = {
   foot?: ReactNode
   footBetween?: boolean
   size?: 'narrow' | 'wide'
+  /** Which page of the menu is showing. Each page keeps its own scroll
+   *  position, so a recipe opens at the top and "back" returns to the list
+   *  where you left it. */
+  page?: string
 }
 
 /** A menu: wooden frame, parchment inside, a title plaque on the top edge,
  *  the red square to close. Escape and a click outside also close it. */
-export function Modal({ title, onClose, children, foot, footBetween, size }: ModalProps) {
+export function Modal({ title, onClose, children, foot, footBetween, size, page = '' }: ModalProps) {
+  const panel = useRef<HTMLDivElement>(null)
+  const body = useRef<HTMLDivElement>(null)
+  const scrolls = useRef(new Map<string, number>())
+  const shown = useRef(page)
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
+
+  // keyboard users land inside the menu, and go back where they were after
+  useEffect(() => {
+    const before = document.activeElement as HTMLElement | null
+    if (!panel.current?.contains(document.activeElement)) panel.current?.focus()
+    return () => { if (before?.isConnected) before.focus() }
+  }, [])
+
+  // recorded as it happens: by the time the page has changed, a shorter page
+  // has already clamped the old position
+  useLayoutEffect(() => {
+    if (!body.current || shown.current === page) return
+    shown.current = page
+    body.current.scrollTop = scrolls.current.get(page) ?? 0
+  }, [page])
+
   return (
     <div className="sv-modal" onClick={onClose}>
       <div
+        ref={panel}
         className={`sv-frame sv-modal__panel${size ? ` sv-modal__panel--${size}` : ''}`}
         onClick={e => e.stopPropagation()}
         role="dialog"
+        aria-modal="true"
         aria-label={title}
+        tabIndex={-1}
       >
         <p className="sv-wood sv-modal__title">{title}</p>
         <button className="sv-close" onClick={onClose} aria-label="Close">x</button>
-        <div className="sv-modal__body">{children}</div>
+        <div className="sv-modal__body" ref={body} onScroll={e => scrolls.current.set(shown.current, e.currentTarget.scrollTop)}>{children}</div>
         {foot && <div className={`sv-modal__foot${footBetween ? ' sv-modal__foot--between' : ''}`}>{foot}</div>}
       </div>
     </div>
@@ -48,7 +76,7 @@ export function Modal({ title, onClose, children, foot, footBetween, size }: Mod
 }
 
 /** A square tick box with a pixel tick. */
-export function Check({ on, onChange, label, hint }: { on: boolean; onChange: (v: boolean) => void; label: string; hint?: string }) {
+export function Check({ on, onChange, label, hint, showHint }: { on: boolean; onChange: (v: boolean) => void; label: string; hint?: string; showHint?: boolean }) {
   return (
     <button
       className={`sv-check${on ? ' sv-check--on' : ''}`}
@@ -64,7 +92,10 @@ export function Check({ on, onChange, label, hint }: { on: boolean; onChange: (v
           </svg>
         )}
       </span>
-      <span>{label}</span>
+      <span style={{ textAlign: 'left' }}>
+        {label}
+        {showHint && hint && <span className="sv-check__hint sv-small" style={{ display: 'block', marginTop: 3 }}>{hint}</span>}
+      </span>
     </button>
   )
 }

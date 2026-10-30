@@ -1,0 +1,15 @@
+{
+  "name": "Basil — a cosy pixel-art kitchen",
+  "short_name": "Basil",
+  "description": "Type what you bought, watch it land on the shelves, and let Basil the cat tell you what you can cook.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1d1620",
+  "theme_color": "#2a2335",
+  "icons": [
+    { "src": "/basil-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}

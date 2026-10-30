@@ -68,11 +68,25 @@ async function run<T>(
     text = await complete({ system, user, schema, cfg })
   } catch (err) {
     if (err instanceof NoKeyError) return { ok: false, reason: 'no-key', detail: err.message }
-    return { ok: false, reason: 'unreachable', detail: String(err).slice(0, 200) }
+    console.error(`[basil] ${cfg.name} call failed:`, String(err).slice(0, 500))
+    return { ok: false, reason: 'unreachable', detail: publicDetail(cfg.name, err) }
   }
   const data = validate(looseJson(text))
-  if (!data) return { ok: false, reason: 'bad-json', detail: text.slice(0, 200) }
+  if (!data) {
+    console.error(`[basil] ${cfg.name} reply failed validation:`, text.slice(0, 500))
+    return { ok: false, reason: 'bad-json' }
+  }
   return { ok: true, data, provider: cfg.name, model: cfg.model }
+}
+
+/** What the browser is told about a failed call: the provider's status code
+ *  or "timeout", enough for the client to pick a message. Never the
+ *  provider's own error text, which can name the account it belongs to. */
+export function publicDetail(provider: string, err: unknown): string {
+  const text = String(err)
+  if (/abort|timeout/i.test(text)) return `${provider} timeout`
+  const status = text.match(new RegExp(`${provider} (\\d{3})`))?.[1]
+  return status ? `${provider} ${status}` : `${provider} unreachable`
 }
 
 export const parseItems = (text: string) =>

@@ -1,4 +1,4 @@
-const urls = import.meta.glob('../assets/audio/*.ogg', { eager: true, as: 'url' }) as Record<string, string>
+const urls = import.meta.glob('../assets/audio/*.ogg', { eager: true, query: '?url', import: 'default' }) as Record<string, string>
 
 const byName: Record<string, string> = {}
 for (const [path, url] of Object.entries(urls)) {

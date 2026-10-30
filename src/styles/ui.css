@@ -135,7 +135,9 @@
 .sv-h1 { font: 48px/1 'TinyRPG', monospace; }
 .sv-h2 { font: 36px/1 'TinyRPG', monospace; }
 .sv-dim { color: var(--sv-ink-dim); }
-.sv-small { font-size: 12px; }
+/* 18px is 1.5x the font's 12px grid: crisp on high-density screens, and
+   readable everywhere, where 12px was not */
+.sv-small { font-size: 18px; line-height: 1.2; }
 .sv-rule { height: 3px; background: var(--sv-paper-deep); box-shadow: 0 3px 0 #fff0cc; margin: 15px 0; border: 0; }
 
 /* ---- full-screen menus ---- */
@@ -158,6 +160,7 @@
   flex-direction: column;
   animation: popin 160ms steps(4);
 }
+.sv-modal__panel:focus { outline: none; }
 .sv-modal__panel--narrow { width: min(100%, 540px); }
 .sv-modal__panel--wide { width: min(100%, 1020px); }
 @keyframes popin { from { transform: translateY(18px); opacity: 0; } }
@@ -196,7 +199,7 @@
   place-items: center;
 }
 .title__land { position: absolute; bottom: 0; image-rendering: pixelated; }
-.title__cloud { position: absolute; image-rendering: pixelated; animation: titlecloud linear infinite; }
+.title__cloud { position: absolute; height: auto; image-rendering: pixelated; animation: titlecloud linear infinite; }
 @keyframes titlecloud { from { transform: translateX(-30vw); } to { transform: translateX(130vw); } }
 .title__drift { position: absolute; top: -40px; line-height: 0; pointer-events: none; animation: titledrift linear infinite; }
 .title__drift img { image-rendering: pixelated; }
@@ -232,9 +235,10 @@
 }
 .title__logo span { color: #a9d36a; }
 .title__tag { display: inline-block; margin-top: 21px; padding: 9px 18px; }
+.title__season::before { content: ' · '; }
 .title__cat { position: absolute; left: 50%; top: -84px; margin-left: -72px; }
 .title__menu { display: flex; flex-direction: column; gap: 15px; margin-top: 24px; }
-.title__foot { position: absolute; left: 0; right: 0; bottom: 15px; text-align: center; color: #fff1cf; text-shadow: 2px 2px 0 rgb(0 0 0 / 0.5); }
+.title__foot { position: absolute; left: 0; right: 0; bottom: 15px; padding: 0 16px; text-align: center; color: #fff1cf; text-shadow: 2px 2px 0 rgb(0 0 0 / 0.5); }
 
 /* ================= in-game HUD ================= */
 .hud { position: fixed; inset: 0; pointer-events: none; z-index: 10; }
@@ -254,7 +258,7 @@
 .hud__clock-day { display: flex; justify-content: space-between; align-items: center; padding: 3px 6px 9px; border-bottom: 3px solid var(--sv-paper-deep); }
 .hud__clock-time { padding-top: 9px; font: 36px/1 'TinyRPG', monospace; }
 .hud__clock-phase { margin-top: 6px; color: var(--sv-ink-dim); }
-.hud__season { padding: 3px 6px; font-size: 12px; color: #fff3e0; border: 2px solid var(--sv-outline); }
+.hud__season { padding: 3px 6px; font-size: 18px; color: #fff3e0; border: 2px solid var(--sv-outline); }
 .hud__season--spring { background: #c0648a; }
 .hud__season--summer { background: #4f8a2a; }
 .hud__season--autumn { background: #c56b2e; }
@@ -295,8 +299,10 @@
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100vw - 30px);
   padding: 9px 15px;
-  white-space: nowrap;
+  text-align: center;
   animation: bob 1600ms steps(2) infinite;
 }
 @keyframes bob { 50% { transform: translate(-50%, -3px); } }
@@ -350,7 +356,7 @@ button.sv-row:hover { background: #fff8e2; border-color: var(--sv-wood); }
 .sv-tag {
   display: inline-block;
   padding: 3px 6px;
-  font-size: 12px;
+  font-size: 18px;
   color: var(--sv-paper);
   background: var(--sv-wood-dark);
   border: 2px solid var(--sv-outline);
@@ -432,6 +438,8 @@ button.sv-row:hover { background: #fff8e2; border-color: var(--sv-wood); }
   .hud__menu { max-width: calc(100vw - 190px); left: 9px; top: 9px; }
   .hud__menu .sv-btn { padding: 6px 9px; min-height: 42px; }
   .title__logo { font-size: 72px; }
+  .title__season { display: block; margin-top: 6px; }
+  .title__season::before { content: none; }
   .sv-modal { padding: 30px 24px; }
   .title__cloud { max-width: 30vw; }
   .sv-row { flex-wrap: wrap; }
@@ -446,7 +454,7 @@ button.sv-row:hover { background: #fff8e2; border-color: var(--sv-wood); }
 
 /* ---- shopping list ---- */
 .cook__cardwrap { position: relative; display: grid; }
-.cook__list { position: absolute; right: 9px; bottom: 9px; min-height: 30px; padding: 3px 9px; font-size: 12px; }
+.cook__list { position: absolute; right: 9px; bottom: 9px; min-height: 30px; padding: 3px 9px; font-size: 18px; }
 .shop__row { gap: 9px; }
 .shop__row .sv-check { padding: 3px; }
 .shop__row--done { opacity: 0.6; }

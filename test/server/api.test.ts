@@ -12,11 +12,11 @@ async function call(
   method: string,
   url: string,
   body?: unknown,
-  opts: { preParsed?: boolean; ip?: string } = {},
+  opts: { preParsed?: boolean; ip?: string; headers?: Record<string, string> } = {},
 ): Promise<Sent | null> {
   const raw = body === undefined ? '' : JSON.stringify(body)
   const req = Readable.from(opts.preParsed || !raw ? [] : [raw]) as unknown as IncomingMessage & { body?: unknown }
-  Object.assign(req, { method, url, headers: { 'x-forwarded-for': opts.ip ?? '1.1.1.1' }, socket: {} })
+  Object.assign(req, { method, url, headers: { 'x-forwarded-for': opts.ip ?? '1.1.1.1', ...opts.headers }, socket: {} })
   if (opts.preParsed) req.body = body
   const sent: Sent = { status: 200, headers: {}, body: undefined }
   const res = {
@@ -105,6 +105,42 @@ describe('model routes', () => {
     const r = await call(open(), 'POST', '/api/suggest', { inventory: '- milk' })
     expect(r?.body).toMatchObject({ ok: false, reason: 'unreachable' })
     expect(r?.body.detail).toContain('groq 404')
+  })
+
+  it("never passes on the provider's own error text", async () => {
+    process.env.GROQ_API_KEY = 'k'
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('{"error":"limit for organization org_secret123"}', { status: 429 })))
+    const r = await call(open(), 'POST', '/api/parse', { text: 'milk' })
+    expect(r?.body).toEqual({ ok: false, reason: 'unreachable', detail: 'groq 429' })
+  })
+
+  it('keeps a rejected model reply out of the response', async () => {
+    process.env.GROQ_API_KEY = 'k'
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ choices: [{ message: { content: 'model rambling' } }] }))))
+    const r = await call(open(), 'POST', '/api/parse', { text: 'milk' })
+    expect(JSON.stringify(r?.body)).not.toContain('rambling')
+  })
+})
+
+describe('other websites', () => {
+  it('refuses a browser request from another site', async () => {
+    const cross = await call(open(), 'POST', '/api/parse', { text: 'milk' }, { headers: { origin: 'https://evil.example', host: 'basil-cat.vercel.app' } })
+    expect(cross?.status).toBe(403)
+    const fetchSite = await call(open(), 'POST', '/api/parse', { text: 'milk' }, { headers: { 'sec-fetch-site': 'cross-site' } })
+    expect(fetchSite?.status).toBe(403)
+  })
+
+  it("accepts the site's own pages and clients that send no origin", async () => {
+    const own = await call(open(), 'POST', '/api/parse', { text: 'milk' }, { headers: { origin: 'https://basil-cat.vercel.app', host: 'basil-cat.vercel.app', 'sec-fetch-site': 'same-origin' } })
+    expect(own?.status).toBe(200)
+    expect((await call(open(), 'POST', '/api/parse', { text: 'milk' }))?.status).toBe(200)
+  })
+
+  it('refuses a body that is too large, or not an object', async () => {
+    expect((await call(open(), 'POST', '/api/parse', { text: 'x'.repeat(70_000) }))?.status).toBe(413)
+    expect((await call(open(), 'POST', '/api/parse', 'just a string'))?.status).toBe(400)
   })
 })
 

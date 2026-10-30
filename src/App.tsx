@@ -211,7 +211,7 @@ export function App() {
         <Clock now={now} sky={sky} season={season} />
 
         {firstRun && !overlay && (
-          <p className="hud__tip sv-frame sv-small" style={{ top: 18 }}>
+          <p className="hud__tip sv-frame sv-small" style={{ bottom: barH + 33 }}>
             type what you bought below · click Basil the cat for recipes · click the fridge to open it
           </p>
         )}

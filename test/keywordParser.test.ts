@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { keywordParse, splitPhrases } from '../src/lib/keywordParser'
+import { guessLocation } from '../src/lib/schema'
 
 it('splits on commas, "and", "plus", semicolons and new lines', () => {
   expect(splitPhrases('milk, bread and eggs; jam plus butter\ncheese')).toEqual([
@@ -15,6 +16,12 @@ describe('keywordParse', () => {
       expect.objectContaining({ displayName: 'Cheddar', name: 'cheddar', kind: 'cheese', category: 'dairy', amount: 'half', unit: 'block' }),
       expect.objectContaining({ displayName: 'Eggs', name: 'egg', count: 12 }),
     ])
+  })
+
+  it('files tinned food as tinned, so it goes in the cupboard, not the fridge', () => {
+    const drafts = keywordParse('tin of tomatoes, 2 cans of sweetcorn, tinned peaches')
+    expect(drafts.map(d => d.category)).toEqual(['tinned', 'tinned', 'tinned'])
+    expect(guessLocation(drafts[0].name!, drafts[0].category!)).toBe('cupboard')
   })
 
   it('labels the thing and keeps the number apart: "two eggs" is Eggs, two of them', () => {
