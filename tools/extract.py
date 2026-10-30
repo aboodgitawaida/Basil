@@ -2,6 +2,11 @@
 
 Run from the project root:  python3 -I tools/extract.py
 
+The packs are not in the repository (their licences don't allow passing the
+files on), so download them into assets/ first; tools/README.md lists each
+one and where it goes. The sprites this builds are committed, so the app
+itself never needs this step.
+
 Two things happen here that matter more than the cropping:
 
 1. WORLD SCALE. The packs disagree about how many pixels a centimetre is
@@ -225,7 +230,7 @@ for src, name in FOOD2_MAP.items():
 # Chunked so it sits on the same 2px grid as everything else.
 frames(f"{SHEETS}/Silverware.png",
        ["kit/fork", None, None, "kit/bowl", "kit/plate-stack",
-        None, "kit/plate", None, "food/egg"], chunky=True, scale=UNIT)
+        None, "kit/plate"], chunky=True, scale=UNIT)   # the egg is drawn in tools/drawn.py
 frames(f"{SHEETS}/ChefTools.png",
        [None, None, None, None, "kit/pan",
         "kit/pot", "kit/mixing-bowl", None, None, None], chunky=True, scale=UNIT)

@@ -23,5 +23,5 @@ SOFTWARE.
 ---
 
 This licence covers the source code only. The art, fonts and audio in
-`assets/`, `src/assets/` and `public/` belong to their creators and are used
-with permission; see CREDITS.md. They are not licensed for reuse.
+`src/assets/` and `public/` belong to their creators and stay under their own
+licences; see CREDITS.md. They are not covered by this licence.
