@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { book, cook, dishSprite } from '../src/lib/cooking'
 import { RECIPES, match } from '../src/lib/recipes'
@@ -5,13 +6,25 @@ import { item, state } from './helpers'
 
 describe('dishSprite', () => {
   it.each([
-    ['Tomato soup', 'dish/soup_1'],
+    ['Tomato soup', 'dish/soup_2'],
+    ['Vegetable soup', 'dish/soup_1'],
     ['Cheese on toast', 'dish/pastry_1'],
-    ['Roast chicken', 'dish/meat_1'],
-    ['Greek salad', 'dish/vegetable_1'],
-    ['Lentil dal', 'dish/soup_2'],
-    ['Mystery', 'dish/potatodish_2'],
+    ['Roast chicken and veg', 'dish/meat_2'],
+    ['Grilled chicken salad', 'dish/salad'],
+    ['Tuna pasta', 'dish/pasta'],
+    ['Egg fried noodles', 'dish/pasta'],
+    ['Fried egg sandwich', 'dish/eggs'],
+    ['Chicken and rice', 'dish/rice'],
+    ['Steak and chips', 'dish/meat_3'],
+    ['Apple crumble', 'dish/pastry_2'],
+    ['Lentil dal', 'dish/soup_3'],
+    ['Mystery', 'dish/soup_1'],
   ])('%s -> %s', (name, key) => expect(dishSprite(name)).toBe(key))
+
+  it('gives every built-in recipe a sprite that exists', () => {
+    const index = JSON.parse(readFileSync('src/assets/sprites/index.json', 'utf8')) as Record<string, unknown>
+    for (const r of RECIPES) expect(index, r.name).toHaveProperty([dishSprite(r.name)])
+  })
 })
 
 const recipe = (name: string) => RECIPES.find(r => r.name === name)!
