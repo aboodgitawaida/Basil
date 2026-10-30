@@ -460,3 +460,28 @@ button.sv-row:hover { background: #fff8e2; border-color: var(--sv-wood); }
 .shop__row--done { opacity: 0.6; }
 .shop__row--done .sv-row__name { text-decoration: line-through; }
 .cook__cardwrap .cook__card--short { padding-bottom: 45px; }
+
+/* ---- a phone on its side: ask for portrait ---- */
+.turn { display: none; }
+@media (orientation: landscape) and (max-height: 500px) and (pointer: coarse) {
+  .turn {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    padding: 16px;
+    text-align: center;
+    color: var(--text);
+    background: var(--ink);
+  }
+}
+
+/* ---- small phones: the four menu buttons as a tidy two-by-two ---- */
+@media (max-width: 400px) {
+  .hud__menu { display: grid; grid-template-columns: auto auto; gap: 6px; }
+  .hud__menu .sv-btn { font-size: 18px; padding: 3px 9px; min-height: 36px; }
+}
