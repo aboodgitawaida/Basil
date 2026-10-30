@@ -20,6 +20,13 @@ try {
     await page.getByRole('button', { name: 'Eggs ×2' }).waitFor()
     await page.getByRole('button', { name: 'Close the fridge' }).first().waitFor()
 
+    // shelf items open from the keyboard too, and Escape closes the card
+    await page.getByRole('button', { name: 'Eggs ×2' }).focus()
+    await page.keyboard.press('Enter')
+    await page.getByRole('dialog', { name: 'Eggs' }).waitFor()
+    await page.keyboard.press('Escape')
+    await page.getByRole('dialog').waitFor({ state: 'detached' })
+
     // Basil's cookbook has something to make, with nutrition
     await page.getByRole('button', { name: 'Ask Basil what you can cook' }).click()
     await page.getByText('Ready to cook').waitFor()

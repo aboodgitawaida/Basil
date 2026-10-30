@@ -48,7 +48,10 @@ function Door({ name, frame, rows, panelY, open, onToggle }: {
 
 export function Fridge(p: Props) {
   const { fridgeFrame, freezerFrame, arrangement, draggingId, onMore, ...rest } = p
-  const handlers: ItemHandlers = { onPointerDown: rest.onPointerDown, onPointerMove: rest.onPointerMove, onPointerUp: rest.onPointerUp }
+  const handlers: ItemHandlers = {
+    onPointerDown: rest.onPointerDown, onPointerMove: rest.onPointerMove, onPointerUp: rest.onPointerUp,
+    onPointerCancel: rest.onPointerCancel, onActivate: rest.onActivate,
+  }
   const inPart = (part: string) => arrangement.placed.filter(x => x.area.part === part)
   const right = FRIDGE.right - 4
 

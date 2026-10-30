@@ -46,5 +46,13 @@ export function useItemDrag(onDrop: (item: Item, t: DropTarget) => void, onTap: 
     if (t) onDrop(s.item, t)
   }, [onDrop, onTap])
 
-  return { drag, handlers: { onPointerDown, onPointerMove, onPointerUp } }
+  // the browser took the gesture over (a scroll, say): drop nothing
+  const onPointerCancel = useCallback(() => {
+    start.current = null
+    setDrag(null)
+  }, [])
+
+  const onActivate = useCallback((item: Item) => onTap(item), [onTap])
+
+  return { drag, handlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onActivate } }
 }
