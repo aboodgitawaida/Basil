@@ -23,8 +23,12 @@ export function limitsFromEnv(env: NodeJS.ProcessEnv = process.env): Limits {
   return { perMinute: num(env.BASIL_RATE_PER_MIN, 20), perDay: num(env.BASIL_RATE_PER_DAY, 300) }
 }
 
-/** Vercel and most proxies put the caller first in x-forwarded-for. */
+/** Vercel sets x-vercel-forwarded-for itself, so a visitor can't fake it;
+ *  most other proxies put the caller first in x-forwarded-for. */
 export function clientIp(req: IncomingMessage): string {
+  const vercel = req.headers['x-vercel-forwarded-for']
+  const fromVercel = (Array.isArray(vercel) ? vercel[0] : vercel)?.split(',')[0]?.trim()
+  if (fromVercel) return fromVercel
   const fwd = req.headers['x-forwarded-for']
   const first = (Array.isArray(fwd) ? fwd[0] : fwd)?.split(',')[0]?.trim()
   const real = req.headers['x-real-ip']

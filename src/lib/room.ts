@@ -115,7 +115,11 @@ export function layout(vw: number, vh: number, reserve = 0): Layout {
   // room's top; leave them their own margins so they never cover the room
   const sides = vw >= 900 ? 2 * 240 : 0
   const room = Math.floor(Math.min((vw - sides) / ROOM.w, (vh - reserve) / needH))
-  const scale = room >= 2 ? room : Math.max(2, Math.floor(Math.min(vw / KIT_W, (vh - reserve) / needH)))
+  // just the kitchen half (counter, cupboards, fridge), cropping the table
+  const kitchen = Math.max(2, Math.floor(Math.min(vw / KIT_W, (vh - reserve) / needH)))
+  // a tall screen would draw the whole room small in a band across the
+  // middle; when the kitchen alone can be drawn bigger, it is
+  const scale = room >= 2 && !(vh > vw && kitchen > room) ? room : kitchen
   const focus = ROOM.w * scale <= vw ? ROOM.w / 2 : KIT_X + KIT_W / 2
   const centred = Math.round((vh - ROOM.h * scale) / 2)
   const floorLimit = vh - reserve - 6 - FLOOR_Y * scale

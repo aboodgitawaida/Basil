@@ -188,7 +188,7 @@ export function Cookbook({ items, history, dietary, aiReady, filters, onFilters,
   const pastNames = [...new Set(history.map(h => h.name))].slice(0, 8)
 
   return (
-    <Modal title={opened ? 'Recipe' : "Basil's Cookbook"} onClose={onClose} size="wide">
+    <Modal title={opened ? 'Recipe' : "Basil's Cookbook"} onClose={onClose} size="wide" page={opened ? opened.recipe.name : 'list'}>
       {opened ? (
         <Detail m={opened} onBack={() => setOpen(null)} onCook={() => onCook(opened)} listed={listed} onList={onList} />
       ) : (
@@ -248,7 +248,9 @@ export function Cookbook({ items, history, dietary, aiReady, filters, onFilters,
               <div className="sv-grid">
                 {pastNames.map(n => (
                   <button key={n} className="sv-btn sv-btn--quiet sv-btn--small"
-                    onClick={() => RECIPES.some(r => r.name === n) ? setOpen(n) : undefined}>
+                    disabled={!RECIPES.some(r => r.name === n)}
+                    title={RECIPES.some(r => r.name === n) ? `Open ${n}` : 'One of Basil\'s own: ask him again for it'}
+                    onClick={() => setOpen(n)}>
                     <Zoom k={dishSprite(n)} scale={1} /> {n}
                   </button>
                 ))}

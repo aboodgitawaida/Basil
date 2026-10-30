@@ -6,6 +6,11 @@ can cook with it.
 
 **[Play it → basil-cat.vercel.app](https://basil-cat.vercel.app)**
 
+[![CI](https://github.com/aboodgitawaida/Basil/actions/workflows/ci.yml/badge.svg)](https://github.com/aboodgitawaida/Basil/actions/workflows/ci.yml)
+![React 18](https://img.shields.io/badge/React-18-61dafb)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6)
+[![Code: MIT](https://img.shields.io/badge/code-MIT-green)](LICENSE)
+
 ![Typing groceries, watching them land in the fridge, and opening Basil's cookbook](docs/demo.gif)
 
 | | |
@@ -38,30 +43,34 @@ can cook with it.
 
 ![The same kitchen in spring, summer, autumn and winter](docs/seasons.png)
 
-## Tech
+## How it's built
 
-- **React 18 + TypeScript + Vite.** No game engine: the room is DOM elements
-  placed in "art pixels" (1 px = 1 cm) and scaled by one whole number, so pixel
-  art never blurs.
+- **React 18 + TypeScript (strict) + Vite.** No game engine: the room is DOM
+  elements placed in "art pixels" (1 px = 1 cm) and scaled by one whole
+  number, so pixel art never blurs. Phones and portrait tablets get the
+  kitchen half of the room at a larger scale.
 - **AI behind a serverless function.** `/api/parse` and `/api/suggest` run in
   one Vercel function (`api/[...path].ts`); locally the same handlers run
-  inside Vite or Express. The model key is read server-side only and never
-  reaches the browser bundle. Supports Gemini or Groq, with JSON-schema
-  output, strict validation, a per-visitor rate limit, and an 8-second client
-  timeout.
+  inside Vite or Express. Supports Gemini or Groq with JSON-schema output, and
+  every reply is strictly validated before the app trusts it.
 - **Works without AI.** A keyword parser and a built-in recipe book are the
   fallback for a missing key, a slow model, a bad reply or no network. The
-  app never blocks on the model.
+  app never blocks on the model: reading a list gives up after 8 seconds.
 - **Local-first.** Everything is saved in `localStorage` behind a `Repository`
-  interface, with versioned migrations. No accounts.
+  interface, with versioned migrations. No accounts. The only things that
+  leave the browser are what you type and what's in your kitchen (sent to
+  the model to read it), and your rough location, only if you switch on real
+  weather.
 - **Pure logic, well tested.** Parsing, shelf layout (`src/lib/arrange.ts`),
-  recipe matching, the shopping list, storage migrations and the API
-  validators are pure functions with 166 unit tests (Vitest), plus a
-  Playwright smoke test that plays through the main loop at desktop and phone
-  sizes. CI runs typecheck, tests, build and the smoke test on every push.
-- **Art pipeline in Python.** `tools/` remaps every sprite onto one 24-colour
-  palette, and builds the fridge doors, Basil's awake poses and the site icon
-  from the source packs.
+  recipe matching, the shopping list, storage migrations, room scaling and the
+  API are covered by 183 unit tests (Vitest), plus a Playwright test that
+  plays through the main loop at desktop and phone sizes. CI runs the
+  typecheck, tests, build and browser test on every push.
+- **One art style from eight packs.** `tools/` is a Python pipeline that crops
+  every sprite, remaps it onto one 27-colour palette, gives it the same
+  outline and scales it to world size, then draws the room, the open doors,
+  Basil's awake poses and a few dishes the packs didn't have. See
+  [tools/README.md](tools/README.md).
 
 ```
 src/
@@ -69,11 +78,24 @@ src/
   ui/      menus: cookbook, shopping list, settings, title screen
   lib/     pure logic: parsing, recipes, layout, storage, time and seasons
 server/    API handlers, providers, schemas, rate limit (shared by Vercel and Express)
-tools/     sprite pipeline (Python)
+api/       the Vercel entry point
+tools/     the sprite pipeline (Python)
 scripts/   Playwright smoke test and README screenshots
+test/      unit tests
 ```
 
+### Security
+
+The model key is read server-side only and never reaches the browser bundle.
+The API refuses requests made from other websites, caps calls per visitor
+(20 a minute, 300 a day by default), limits body size, and never passes the
+provider's own error text back to the browser. The site sends a strict
+Content Security Policy and the usual hardening headers (`vercel.json`), and
+`npm audit` is clean.
+
 ## Running it
+
+Needs Node 22.12 or newer.
 
 ```sh
 npm install
@@ -86,6 +108,7 @@ Without a key, everything works on the built-in reader and cookbook.
 ```sh
 npm test            # unit tests
 npm run typecheck   # client, server and tests
+npx playwright install chromium        # once, for the browser tests
 npm run build && npm run smoke         # end-to-end smoke test
 npm run build && npm run screenshots   # regenerate docs/ (then python3 -I tools/gif.py)
 ```
@@ -103,9 +126,8 @@ GROQ_API_KEY=...           # or GEMINI_API_KEY
 ```
 
 `BASIL_MODEL` pins a model name. `BASIL_RATE_PER_MIN` and `BASIL_RATE_PER_DAY`
-cap model calls per visitor (default 20 a minute, 300 a day). The counts live
-in memory per serverless instance, so also set a spending limit in your
-provider's dashboard.
+change the per-visitor caps. The counts live in memory per serverless
+instance, so also set a spending limit in your provider's dashboard.
 
 ### Deploying
 
@@ -114,6 +136,8 @@ Environment Variables and deploy. `/api/*` runs as one serverless function.
 
 ## Credits
 
-The art and sound come from free asset packs, used with their creators'
-permission; see [CREDITS.md](CREDITS.md). The code is MIT-licensed; the art
-and audio are not covered by that licence and may not be reused.
+The art, fonts and sound come from free packs by KARSIORI, Frostwindz,
+ToffeeCraft, Riley (rkuhlf-assets), Stealthix, Emi Emi Games, tiopalada,
+Kenney and Redlight_Chill; see [CREDITS.md](CREDITS.md) for links and
+licences. The code is MIT-licensed; the art and audio are not covered by
+that licence.
