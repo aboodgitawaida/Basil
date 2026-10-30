@@ -30,7 +30,7 @@ export function Settings({ settings, onChange, onReset, aiNote, onClose }: Props
 
       <p className="sv-section sv-h2">Outside</p>
       <div className="sv-field">
-        <Check on={settings.weather} onChange={v => set({ weather: v })} label="Real weather in the window" hint="asks your browser where you are" />
+        <Check on={settings.weather} onChange={v => set({ weather: v })} label="Real weather in the window" hint="asks your browser for your location, once" />
         <Check on={!!settings.south} onChange={v => set({ south: v })} label="Southern hemisphere" hint="summer in December" />
         <p className="sv-small sv-dim">The sky follows your own clock and the seasons follow the date. The switch by the window only works the lamp.</p>
       </div>
@@ -39,7 +39,7 @@ export function Settings({ settings, onChange, onReset, aiNote, onClose }: Props
       <div className="sv-grid" style={{ marginBottom: 9 }}>
         {DIETS.map(d => <Check key={d} on={settings.dietary.includes(d)} onChange={v => diet(d, v)} label={d} />)}
       </div>
-      <p className="sv-small sv-dim">Basil keeps to these when he suggests his own recipes. Vegetarian and vegan also tick those boxes in the cookbook.</p>
+      <p className="sv-small sv-dim">The cookbook only shows recipes that fit these, and Basil keeps to them in his own ideas.</p>
 
       {aiNote && <><hr className="sv-rule" /><p className="sv-small sv-dim">{aiNote}</p></>}
 

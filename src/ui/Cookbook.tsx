@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { suggestMeals } from '../lib/ai'
 import { cookbookLine } from '../lib/basilSays'
-import { dishSprite } from '../lib/craft'
+import { dishSprite } from '../lib/cooking'
 import {
-  FILTERS, RECIPES, cookable, ingredientLabel, match, passes, rank,
+  FILTERS, RECIPES, cookable, fitsDiet, ingredientLabel, match, passes, rank,
   type Filter, type Match, type Recipe,
 } from '../lib/recipes'
 import { quantityText, type CookedMeal, type Item } from '../lib/schema'
@@ -166,11 +166,12 @@ export function Cookbook({ items, history, dietary, aiReady, filters, onFilters,
   }
   useEffect(() => { if (aiReady) ask() }, [aiReady])
 
-  const all = useMemo(() => cookable(items), [items])
+  // the diet set in Settings is a hard rule, not a tick box
+  const all = useMemo(() => cookable(items, RECIPES.filter(r => fitsDiet(r, dietary))), [items, dietary])
   const ideas = useMemo(() => {
     const known = new Set(RECIPES.map(r => r.name.toLowerCase()))
-    return rank(extra.filter(r => !known.has(r.name.toLowerCase())).map(r => match(r, items)))
-  }, [extra, items])
+    return rank(extra.filter(r => !known.has(r.name.toLowerCase()) && fitsDiet(r, dietary)).map(r => match(r, items)))
+  }, [extra, items, dietary])
 
   const shown = all.filter(m => passes(m, filters))
   const ready = shown.filter(m => !m.missing.length)
@@ -199,6 +200,9 @@ export function Cookbook({ items, history, dietary, aiReady, filters, onFilters,
             </p>
           </div>
 
+          {dietary.length > 0 && (
+            <p className="sv-small sv-dim" style={{ marginBottom: 9 }}>Keeping to: {dietary.join(', ')} (change in Settings)</p>
+          )}
           <div className="cook__filters" role="group" aria-label="Filters">
             {FILTERS.map(f => (
               <Check key={f.id} on={filters.includes(f.id)} onChange={v => toggle(f.id, v)} label={f.label} hint={f.hint} />

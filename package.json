@@ -11,7 +11,9 @@
     "assets": "python3 -I tools/extract.py && python3 -I tools/doors.py && python3 -I tools/basil.py && python3 -I tools/favicon.py",
     "typecheck": "tsc -b && tsc -p tsconfig.server.json && tsc -p tsconfig.test.json",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "smoke": "node scripts/smoke.mjs",
+    "screenshots": "node scripts/screenshots.mjs"
   },
   "dependencies": {
     "dotenv": "^16.4.7",
@@ -30,5 +32,7 @@
     "typescript": "5.6.3",
     "vite": "5.4.11",
     "vitest": "^2.1.9"
-  }
+  },
+  "description": "A cosy pixel-art kitchen: type what you bought, watch it land on the shelves, and let Basil the cat tell you what you can cook.",
+  "license": "MIT"
 }

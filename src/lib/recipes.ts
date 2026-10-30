@@ -270,3 +270,22 @@ export function spending(m: Match): Array<{ id: string; count: number }> {
 }
 
 export const ingredientLabel = (need: string) => options(need).join(' or ')
+
+/** What each diet setting rules out, by required ingredient. Vegetarian and
+ *  vegan use the recipes' own tags. Optional extras never rule a recipe out:
+ *  you just leave them off. */
+const RULES_OUT: Record<string, RegExp> = {
+  'gluten-free': /\b(bread|pasta|flour|noodle|tortilla|wrap|cereal|granola|bagel|soy sauce|pitta)\b/,
+  'dairy-free': /\b(milk|cheese|butter|yoghurt|cream|feta|mozzarella|cheddar)\b/,
+  'no pork': /\b(bacon|ham|sausage|pork|chorizo)\b/,
+  'no nuts': /\b(peanut|nut|almond|walnut|cashew)\b/,
+}
+
+export function fitsDiet(r: Recipe, dietary: string[]): boolean {
+  return dietary.every(d => {
+    if (d === 'vegetarian') return r.tags.includes('vegetarian')
+    if (d === 'vegan') return r.tags.includes('vegan')
+    const re = RULES_OUT[d]
+    return !re || !r.ingredients.some(i => !i.optional && re.test(i.item))
+  })
+}

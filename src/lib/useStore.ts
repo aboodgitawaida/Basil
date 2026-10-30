@@ -57,5 +57,6 @@ export function useStore() {
 
   const dismissUndo = useCallback(() => setUndoable(null), [])
 
-  return { state, loaded, apply, applyQuiet, undo, undoable, dismissUndo }
+  /** the state as of the last apply, for reading straight after one */
+  return { state, latest, loaded, apply, applyQuiet, undo, undoable, dismissUndo }
 }

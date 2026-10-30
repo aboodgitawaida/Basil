@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { SKY, arc, arcHeight, phaseAt, type Phase } from '../lib/daylight'
 import { spriteUrl } from '../lib/sprites'
 import { useLoop } from '../lib/useLoop'
@@ -113,6 +113,15 @@ function Drift({ season }: { season: Season }) {
 
 export function TitleScreen({ hasSave, season, onStart, onSettings, onCredits }: Props) {
   const canvas = useRef<HTMLCanvasElement>(null)
+  // a whole-number zoom big enough to cover the screen, so every pixel is the
+  // same size; the overflow is cropped, keeping the hills on the bottom edge
+  const cover = () => Math.max(1, Math.ceil(Math.max(window.innerWidth / W, window.innerHeight / H)))
+  const [zoom, setZoom] = useState(cover)
+  useEffect(() => {
+    const onResize = () => setZoom(cover())
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
   const now = new Date()
   const phase = phaseAt(now)
   const frame = useLoop(6, 420)
@@ -125,7 +134,7 @@ export function TitleScreen({ hasSave, season, onStart, onSettings, onCredits }:
 
   return (
     <div className="title">
-      <canvas ref={canvas} className="title__land" width={W} height={H} style={{ objectFit: 'cover' }} />
+      <canvas ref={canvas} className="title__land" width={W} height={H} style={{ width: W * zoom, height: H * zoom, left: Math.round((window.innerWidth - W * zoom) / 2) }} />
       {!night && [1, 2, 3, 4].map(n => (
         <img key={n} className="title__cloud" src={spriteUrl(`sky/cloud-${n}`)} alt=""
           style={{ top: `${6 + n * 7}%`, width: 27 * (n % 2 ? 6 : 4), animationDuration: `${70 + n * 23}s`, animationDelay: `-${n * 19}s` }} />
