@@ -141,6 +141,8 @@ const CATEGORY_WORDS: Array<[RegExp, Category]> = [
   // before produce, so "orange juice" is a drink; whole words, so "chocolate"
   // is not cola and "watermelon" is not water
   [/\b(juice|water|wine|beer|cola|soda|squash|cordial|lemonade|cider)s?\b/, 'drink'],
+  // a tin of tomatoes is a tin before it is a tomato: it lives in the cupboard
+  [/\b(tins?|cans?|tinned|canned)\b/, 'tinned'],
   [/chicken|beef|steak|pork|lamb|bacon|ham|mince|fish|salmon|cod|prawn|shrimp|turkey|drumstick|sausage|chorizo/, 'meat'],
   [/apple|pear|banana|orange|lemon|lime|berry|grape|peach|plum|mango|avocado|lettuce|salad|spinach|rocket|kale|cabbage|broccoli|cauliflower|carrot|onion|garlic|potato|tomato|pepper|courgette|cucumber|mushroom|leek|celery|pumpkin|melon|veg|fruit|herb|basil|coriander|parsley/, 'produce'],
   [/bread|loaf|sourdough|baguette|bagel|brioche|tortilla|wrap|pitta|pasta|spaghetti|penne|rice|flour|oat|cereal|granola|noodle|couscous|quinoa|lentil/, 'grain'],

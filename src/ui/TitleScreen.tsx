@@ -146,7 +146,7 @@ export function TitleScreen({ hasSave, season, onStart, onSettings, onCredits }:
         <div className="title__sign">
           <span className="title__cat"><Zoom k={`cat/sleep-${frame}`} scale={3} /></span>
           <h1 className="title__logo">B<span>a</span>sil</h1>
-          <p className="title__tag sv-wood">a cosy kitchen, and the cat who runs it · {SEASON_LABEL[season].toLowerCase()}</p>
+          <p className="title__tag sv-wood">a cosy kitchen, and the cat who runs it<span className="title__season">{SEASON_LABEL[season].toLowerCase()}</span></p>
         </div>
         <nav className="title__menu">
           <button className="sv-btn sv-btn--big sv-btn--go" onClick={onStart} autoFocus>{hasSave ? 'Continue' : 'Start'}</button>
