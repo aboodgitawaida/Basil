@@ -19,7 +19,7 @@ import { Credits } from './ui/Credits'
 import { Settings } from './ui/Settings'
 import { PantryList } from './ui/PantryList'
 import { TitleScreen } from './ui/TitleScreen'
-import { Modal } from './ui/kit'
+import { Modal, TurnUpright } from './ui/kit'
 import { nightLevel } from './lib/daylight'
 import { seasonAt, seasonOverride } from './lib/seasons'
 import { fetchSky, type Sky } from './lib/weather'
@@ -152,6 +152,7 @@ export function App() {
         />
         {overlay === 'settings' && <Settings settings={settings} onChange={setSettings} onClose={() => setOverlay(null)} />}
         {overlay === 'credits' && <Credits onClose={() => setOverlay(null)} />}
+        <TurnUpright />
       </>
     )
   }
@@ -301,6 +302,7 @@ export function App() {
       {overlay === 'credits' && <Credits onClose={() => setOverlay(null)} />}
 
       {debug && <DebugManifest />}
+      <TurnUpright />
     </div>
   )
 }

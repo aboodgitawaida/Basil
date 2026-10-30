@@ -75,6 +75,19 @@ export function Modal({ title, onClose, children, foot, footBetween, size, page 
   )
 }
 
+/** A phone on its side is too short for the room at a crisp scale, so it
+ *  asks to be turned upright, as most phone games do. Shown by CSS only, so
+ *  it appears and goes the moment the phone turns. */
+export function TurnUpright() {
+  return (
+    <div className="turn" role="alert">
+      <Zoom k="cat/sleep-0" scale={2} />
+      <p>Basil fits best upright.</p>
+      <p className="sv-small">Turn your phone and he'll be right here.</p>
+    </div>
+  )
+}
+
 /** A square tick box with a pixel tick. */
 export function Check({ on, onChange, label, hint, showHint }: { on: boolean; onChange: (v: boolean) => void; label: string; hint?: string; showHint?: boolean }) {
   return (
