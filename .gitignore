@@ -8,6 +8,10 @@ dist/
 .env.*
 !.env.example
 
+# the source art packs: their licences don't allow sharing the files, so
+# they stay local. tools/README.md says where to get each one.
+/assets/
+
 # hosting and tooling
 .vercel/
 coverage/

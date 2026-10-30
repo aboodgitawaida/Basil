@@ -4,13 +4,14 @@ type Pack = { name: string; by: string; use: string; licence: string }
 
 /** Who made what. Mirrors CREDITS.md. */
 const PACKS: Pack[] = [
-  { name: 'Pixel Art Fridge Pack', by: 'used with permission', use: 'the fridge and freezer', licence: 'with permission' },
-  { name: 'Pixel Art — Food Pack 2', by: 'used with permission', use: 'groceries', licence: 'with permission' },
-  { name: 'Pixel Art — Food Icons (free)', by: 'Frostwindz', use: 'cooked dishes in the cookbook', licence: 'with permission' },
-  { name: 'Sleeping Cat (free)', by: 'used with permission', use: 'Basil', licence: 'with permission' },
-  { name: 'Restaurant pixel art', by: 'used with permission', use: 'pots, pans and bowls', licence: 'with permission' },
-  { name: 'Item Pack', by: 'used with permission', use: 'jars and bags', licence: 'with permission' },
-  { name: 'Cozy lofi music', by: 'Redlight_Chill', use: 'the music', licence: 'with permission' },
+  { name: 'Fridge Pack', by: 'KARSIORI', use: 'the fridge and freezer', licence: 'CC0' },
+  { name: 'Food Pack 2', by: 'KARSIORI', use: 'groceries', licence: 'CC0' },
+  { name: 'Food Icons', by: 'Frostwindz', use: 'dishes in the cookbook', licence: 'licensed' },
+  { name: 'Cat Sleeping Animation', by: 'ToffeeCraft', use: 'Basil', licence: 'licensed' },
+  { name: 'Restaurant Character and Tileset', by: 'Riley (rkuhlf-assets)', use: 'pots, pans and clouds', licence: 'CC0' },
+  { name: 'Pixel Item Pack', by: 'Stealthix', use: 'jars and bags', licence: 'CC0' },
+  { name: 'Weather particle sprites', by: 'Emi Emi Games', use: 'rain, snow and leaves', licence: 'free' },
+  { name: 'Drink & Chill, Autumn', by: 'Music by Redlight_Chill', use: 'the music', licence: 'free' },
   { name: 'Tiny RPG — Emoji Pack I', by: "Gabriel 'tiopalada' Lima", use: "Basil's bubbles", licence: 'CC0' },
   { name: 'Tiny RPG — Font Kit I', by: "Gabriel 'tiopalada' Lima", use: 'all the text', licence: 'CC0' },
   { name: 'Interface Sounds', by: 'Kenney (kenney.nl)', use: 'clicks and clunks', licence: 'CC0' },
@@ -33,8 +34,8 @@ export function Credits({ onClose }: { onClose: () => void }) {
       </ul>
       <p className="sv-small sv-dim" style={{ marginTop: 15 }}>
         The kitchen itself — walls, cabinets, window, table, lamps — the title landscape, the
-        open doors and Basil's awake poses are drawn for this project. Full credits are in
-        CREDITS.md in the repository.
+        open doors, Basil's awake poses and a few of the dishes are drawn for this project.
+        Links and full licences are in CREDITS.md in the repository.
       </p>
     </Modal>
   )
