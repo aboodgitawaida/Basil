@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { SKY, arc, arcHeight, phaseAt, type Phase } from '../lib/daylight'
-import { spriteUrl } from '../lib/sprites'
+import { spriteSize, spriteUrl } from '../lib/sprites'
 import { useLoop } from '../lib/useLoop'
 import { Zoom } from './kit'
 import { LAND, SEASON_LABEL, type Season } from '../lib/seasons'
@@ -89,6 +89,13 @@ function paint(c: HTMLCanvasElement, phase: Phase, now: Date, season: Season) {
   hill(132, 2, 12, 2, shade(winter ? '#dfe9ec' : season === 'autumn' ? '#8a6a2e' : '#4f8a2a'))
 }
 
+/** A sprite at a set width, with its height worked out so the page doesn't
+ *  shift as it loads. */
+function Img({ k, width, className, style }: { k: string; width: number; className?: string; style?: React.CSSProperties }) {
+  const { w, h } = spriteSize(k)
+  return <img src={spriteUrl(k)} alt="" className={className} width={width} height={Math.round((width * h) / w)} style={style} />
+}
+
 /** Things drifting across the title: blossom, autumn leaves or snow. */
 function Drift({ season }: { season: Season }) {
   if (season === 'summer') return null
@@ -101,9 +108,9 @@ function Drift({ season }: { season: Season }) {
           animationDelay: `-${(n * 13) % 17}s`,
         }}>
           {season === 'autumn'
-            ? <img src={spriteUrl(`weather/leaf-${(n % 4) + 1}`)} alt="" style={{ width: 24 }} />
+            ? <Img k={`weather/leaf-${(n % 4) + 1}`} width={24} />
             : season === 'winter'
-              ? <img src={spriteUrl('weather/snowflake')} alt="" style={{ width: n % 2 ? 18 : 12 }} />
+              ? <Img k="weather/snowflake" width={n % 2 ? 18 : 12} />
               : <i className="title__petal" style={{ background: n % 2 ? '#f4b6c8' : '#fff4f0' }} />}
         </i>
       ))}
@@ -136,8 +143,8 @@ export function TitleScreen({ hasSave, season, onStart, onSettings, onCredits }:
     <div className="title">
       <canvas ref={canvas} className="title__land" width={W} height={H} style={{ width: W * zoom, height: H * zoom, left: Math.round((window.innerWidth - W * zoom) / 2) }} />
       {!night && [1, 2, 3, 4].map(n => (
-        <img key={n} className="title__cloud" src={spriteUrl(`sky/cloud-${n}`)} alt=""
-          style={{ top: `${6 + n * 7}%`, width: 27 * (n % 2 ? 6 : 4), animationDuration: `${70 + n * 23}s`, animationDelay: `-${n * 19}s` }} />
+        <Img key={n} k={`sky/cloud-${n}`} width={27 * (n % 2 ? 6 : 4)} className="title__cloud"
+          style={{ top: `${6 + n * 7}%`, animationDuration: `${70 + n * 23}s`, animationDelay: `-${n * 19}s` }} />
       ))}
 
       <Drift season={season} />

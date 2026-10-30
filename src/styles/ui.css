@@ -199,7 +199,7 @@
   place-items: center;
 }
 .title__land { position: absolute; bottom: 0; image-rendering: pixelated; }
-.title__cloud { position: absolute; image-rendering: pixelated; animation: titlecloud linear infinite; }
+.title__cloud { position: absolute; height: auto; image-rendering: pixelated; animation: titlecloud linear infinite; }
 @keyframes titlecloud { from { transform: translateX(-30vw); } to { transform: translateX(130vw); } }
 .title__drift { position: absolute; top: -40px; line-height: 0; pointer-events: none; animation: titledrift linear infinite; }
 .title__drift img { image-rendering: pixelated; }
