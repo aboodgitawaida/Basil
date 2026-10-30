@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ROOM, layout } from './lib/room'
 import { Room } from './scene/Room'
 import { DebugManifest } from './scene/DebugManifest'
@@ -6,14 +6,13 @@ import { Toast } from './ui/Toast'
 import { AddBar, Clock } from './ui/Hud'
 import { ItemCard } from './ui/ItemCard'
 import { useStore } from './lib/useStore'
-import { aiStatus, parseText, type ParseOutcome } from './lib/ai'
+import { aiStatus, parseText } from './lib/ai'
 import { useBasil } from './lib/useBasil'
-import { ParsePreview } from './ui/ParsePreview'
 import { addItems, allGone, moveItem, setAmount, setCount, topQuickAdd } from './lib/inventory'
 import { addToList, clearTicked, missingFor, readList, tick, toBuy, unlist } from './lib/shopping'
 import { ShoppingList } from './ui/ShoppingList'
 import { useItemDrag, type DropTarget } from './lib/useItemDrag'
-import { cook } from './lib/craft'
+import { cook } from './lib/cooking'
 import type { Filter, Match } from './lib/recipes'
 import { Cookbook } from './ui/Cookbook'
 import { Credits } from './ui/Credits'
@@ -47,7 +46,6 @@ export function App() {
   const [freezerOpen, setFreezerOpen] = useState(false)
   const [cupboardOpen, setCupboardOpen] = useState<readonly [boolean, boolean]>([false, false])
   const [picked, setPicked] = useState<string | null>(null)
-  const [pending, setPending] = useState<ParseOutcome | null>(null)
   const [busy, setBusy] = useState(false)
   const [aiReady, setAiReady] = useState(false)
   const [sky, setSky] = useState<Sky>('clear')
@@ -57,7 +55,7 @@ export function App() {
   const bar = useRef<HTMLDivElement>(null)
   const now = useNow()
   const debug = new URLSearchParams(window.location.search).has('debug')
-  const { state, loaded, apply, applyQuiet, undo, undoable, dismissUndo } = useStore()
+  const { state, latest, loaded, apply, applyQuiet, undo, undoable, dismissUndo } = useStore()
   const basil = useBasil(state.items, fridgeOpen || freezerOpen)
   const settings = state.settings
 
@@ -96,23 +94,28 @@ export function App() {
 
   const setSettings = (next: SettingsT) => applyQuiet(s => ({ ...s, settings: next }))
 
+  /** One step: type, Enter, it's on the shelf. Nothing is confirmed up front;
+   *  the undo note is the way back, and the door opens so you see it land. */
   const add = useCallback(async (text: string) => {
     setBusy(true)
     try {
       const outcome = await parseText(text)
-      if (outcome.drafts.length) setPending(outcome)
+      const drafts = outcome.drafts
+      if (!drafts.length) return
+      const names = drafts.map(d => d.displayName)
+      const what = names.length <= 3 ? names.join(', ').replace(/, ([^,]*)$/, ' and $1') : `${names.length} things`
+      sound.play('place')
+      const before = latest.current.items.map(i => i.id)
+      apply(`Put ${what} away.`, addItems(drafts))
+      // open whichever doors the new things went behind
+      const added = latest.current.items.filter(i => !before.includes(i.id) || drafts.some(d => d.name === i.name))
+      if (added.some(i => i.location === 'fridge')) setFridgeOpen(true)
+      if (added.some(i => i.location === 'freezer')) setFreezerOpen(true)
+      if (added.some(i => i.location === 'cupboard')) setCupboardOpen([true, true])
     } finally {
       setBusy(false)
     }
-  }, [])
-
-  const commit = useCallback(() => {
-    if (!pending?.drafts.length) return
-    const what = pending.drafts.length === 1 ? pending.drafts[0].displayName : `${pending.drafts.length} things`
-    sound.play('place')
-    apply(`Put ${what} away.`, addItems(pending.drafts))
-    setPending(null)
-  }, [pending, apply])
+  }, [apply])
 
   const onDrop = useCallback((item: Item, t: DropTarget) => {
     apply(`Moved ${item.displayName} to the ${t.to}.`, moveItem(item.id, t.to))
@@ -130,9 +133,7 @@ export function App() {
     basil.say({ title: `${m.recipe.name}. Acceptable. I'll have the leftovers.` }, 5000)
   }, [apply, basil])
 
-  const cookFilters = useMemo<Filter[]>(() => filters ?? [
-    ...(settings.dietary.includes('vegan') ? ['vegan' as const] : settings.dietary.includes('vegetarian') ? ['vegetarian' as const] : []),
-  ], [filters, settings.dietary])
+  const cookFilters = filters ?? []
 
   if (!loaded) return <div className="stage" />
 
@@ -209,7 +210,7 @@ export function App() {
         </nav>
         <Clock now={now} sky={sky} season={season} />
 
-        {firstRun && !overlay && !pending && (
+        {firstRun && !overlay && (
           <p className="hud__tip sv-frame sv-small" style={{ top: 18 }}>
             type what you bought below · click Basil the cat for recipes · click the fridge to open it
           </p>
@@ -221,29 +222,11 @@ export function App() {
           quick={topQuickAdd(state, 6).map(n => prettyName(n))}
           onQuick={name => void add(name)}
           busy={busy}
-          hint={aiReady ? undefined : 'No model key set — Basil reads your list himself and uses his built-in cookbook.'}
+          hint={aiReady ? undefined : 'AI is off: Basil reads your list himself and uses his built-in cookbook.'}
         />
       </div>
 
       <Toast undoable={undoable} onUndo={undo} onDismiss={dismissUndo} />
-
-      {pending && (
-        <ParsePreview
-          outcome={pending}
-          have={state.items}
-          onConfirm={commit}
-          onCancel={() => setPending(null)}
-          onCount={(i, n) => setPending(p => p && ({
-            ...p,
-            drafts: p.drafts.map((d, k) => (k === i ? { ...d, count: n, displayName: d.name ? prettyName(d.name, n, d.unit) : d.displayName } : d)),
-          }))}
-          onDrop={i => setPending(p => {
-            if (!p) return p
-            const drafts = p.drafts.filter((_, n) => n !== i)
-            return drafts.length ? { ...p, drafts } : null
-          })}
-        />
-      )}
 
       {pickedItem && (
         <ItemCard
@@ -310,7 +293,7 @@ export function App() {
         <Settings
           settings={settings}
           onChange={setSettings}
-          aiNote={aiReady ? 'A model is connected: Basil reads your shopping and adds recipe ideas of his own.' : 'No model key is set. Everything still works: a built-in reader and a built-in cookbook of about forty recipes.'}
+          aiNote={aiReady ? 'A model is connected: Basil reads your shopping and adds recipe ideas of his own.' : 'AI is off here. Everything still works: a built-in reader and a cookbook of 46 recipes.'}
           onReset={() => { apply('Emptied the kitchen.', s => ({ ...s, items: [], history: [], quickAdd: {} })); setOverlay(null) }}
           onClose={() => setOverlay(null)}
         />

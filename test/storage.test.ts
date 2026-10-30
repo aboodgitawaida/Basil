@@ -89,7 +89,7 @@ describe('migrating an old save', () => {
     }))
     const s = await new LocalRepository().load()
     expect(s.items.map(i => i.displayName)).toEqual(['Eggs', 'Oat Milk'])
-    expect(s.settings).toMatchObject({ sound: true, lamp: null, music: false, weather: true })
+    expect(s.settings).toMatchObject({ sound: true, lamp: null, music: false, weather: false })
     expect('lightOverride' in s.settings).toBe(false)
   })
 })
