@@ -4,6 +4,10 @@
 bought, watch it land on the shelves, and let Basil the cat tell you what you
 can cook with it.
 
+A side project made for fun: a small, finished game rather than another
+dashboard, built with the same care for testing and security as my main
+work (see [More of my work](#more-of-my-work)).
+
 **[Play it → basil-cat.vercel.app](https://basil-cat.vercel.app)**
 
 [![CI](https://github.com/aboodgitawaida/Basil/actions/workflows/ci.yml/badge.svg)](https://github.com/aboodgitawaida/Basil/actions/workflows/ci.yml)
@@ -142,3 +146,9 @@ ToffeeCraft, Riley (rkuhlf-assets), Stealthix, Emi Emi Games, tiopalada,
 Kenney and Redlight_Chill; see [CREDITS.md](CREDITS.md) for links and
 licences. The code is MIT-licensed; the art and audio are not covered by
 that licence.
+
+## More of my work
+
+- **[Courseflix](https://github.com/aboodgitawaida/Courseflix)**: Netflix-style course discovery for UTM students, with reviews, recommendations and 2,600+ courses. [courseflix.ca](https://www.courseflix.ca)
+- **[LotPulse](https://github.com/aboodgitawaida/LotPulse)**: live, student-reported parking enforcement alerts for UTM campus lots. [lotpulse-utm.vercel.app](https://lotpulse-utm.vercel.app)
+- **[Vitals](https://github.com/aboodgitawaida/Vitals)**: camera-based heart-rate estimation from an ordinary laptop webcam, run entirely on your own machine. [vitals-track.vercel.app](https://vitals-track.vercel.app)
