@@ -37,6 +37,10 @@ export function Credits({ onClose }: { onClose: () => void }) {
         open doors, Basil's awake poses and a few of the dishes are drawn for this project.
         Links and full licences are in CREDITS.md in the repository.
       </p>
+      <p className="sv-small sv-dim" style={{ marginTop: 15 }}>
+        Basil is made by Abood Awaida ·{' '}
+        <a className="sv-link" href="https://www.linkedin.com/in/abood-awaida/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      </p>
     </Modal>
   )
 }

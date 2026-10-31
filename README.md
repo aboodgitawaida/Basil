@@ -147,6 +147,10 @@ Kenney and Redlight_Chill; see [CREDITS.md](CREDITS.md) for links and
 licences. The code is MIT-licensed; the art and audio are not covered by
 that licence.
 
+## Author
+
+**Abood Awaida** · [GitHub](https://github.com/aboodgitawaida) · [LinkedIn](https://www.linkedin.com/in/abood-awaida/)
+
 ## More of my work
 
 - **[Courseflix](https://github.com/aboodgitawaida/Courseflix)**: Netflix-style course discovery for UTM students, with reviews, recommendations and 2,600+ courses. [courseflix.ca](https://www.courseflix.ca)

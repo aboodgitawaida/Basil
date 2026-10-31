@@ -135,6 +135,7 @@
 .sv-h1 { font: 48px/1 'TinyRPG', monospace; }
 .sv-h2 { font: 36px/1 'TinyRPG', monospace; }
 .sv-dim { color: var(--sv-ink-dim); }
+.sv-link { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 /* 18px is 1.5x the font's 12px grid: crisp on high-density screens, and
    readable everywhere, where 12px was not */
 .sv-small { font-size: 18px; line-height: 1.2; }
